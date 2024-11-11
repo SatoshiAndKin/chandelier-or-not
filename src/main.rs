@@ -22,6 +22,7 @@ async fn main() -> eyre::Result<()> {
 
     info!("Starting");
 
+    // TODO: spawn 10 of these?
     let farcaster_handle = farcaster::FarcasterHandle::new();
 
     let instagram_handle = instagram::InstagramHandle::new(

@@ -1,4 +1,5 @@
 use crate::farcaster::FarcasterHandle;
+use eyre::Context;
 use instagram_scraper_rs::InstagramScraper;
 use tokio::sync::{mpsc, oneshot};
 use tracing::info;
@@ -116,16 +117,19 @@ impl InstagramActor {
     }
 
     async fn logout(&mut self) -> eyre::Result<()> {
-        self.scraper.logout().await?;
+        self.scraper.logout().await.context("logging out")?;
 
         Ok(())
     }
 }
 
-// TODO: i dont like these unwraps
+/// TODO: i dont like these unwraps
+/// TODO: this works, but i'd like it to run concurrently, or even in parallel
+/// TODO: tokio::spawn is not going to work because actor is mut
 async fn run_actor(mut actor: InstagramActor) {
     actor.scraper.login().await.unwrap();
 
+    // TODO: how can we make this parallel? or even concurrent? actor being mut makes this hard
     while let Some(msg) = actor.receiver.recv().await {
         actor.handle_message(msg).await.unwrap();
     }
