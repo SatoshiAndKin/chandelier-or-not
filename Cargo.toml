@@ -6,19 +6,23 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+askama = { version = "0.12.1", features = ["with-axum"] }
+askama_axum = "0.4.0"
+axum = "0.7.7"
 dotenvy = "0.15.7"
 envy = "0.4.2"
 eyre = "0.6.12"
 futures = "0.3.31"
 instagram-scraper-rs = { version = "0.1.0", default-features = false, features = ["rustls"] }
-reqwest = "0.12.8"
-serde = "1.0.210"
-serde_json = "1.0.128"
+reqwest = "0.12.9"
+serde = "1.0.214"
+serde_json = "1.0.132"
 sled = "0.34.7"
-tokio = { version = "1.40.0", features = ["full"] }
+tokio = { version = "1.41.1", features = ["full", "parking_lot", "tracing"] }
 tokio-stream = "0.1.16"
 tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json", "parking_lot"] }
+url = "2.5.3"
 
 [patch.crates-io]
 instagram-scraper-rs = { git = "https://github.com/BlinkyStitt/instagram-scraper-rs.git", branch = "main" }
