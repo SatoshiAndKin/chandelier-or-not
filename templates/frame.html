@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Chandelier or Not{% endblock %}
+
+{% block head %}
+    <meta name="fc:frame" content="vNext" />
+    <meta name="fc:frame:image" content="{{ image }}" />
+    <meta name="og:image" content="{{ image }}" />
+    <!-- todo: optional properties like post_url -->
+    <!-- loop over more meta things -->
+    {% for button in buttons %}
+        <meta name="fc:frame:button" content="{{ button.label }}" />
+    {% endfor %}
+{% endblock %}
+
+{% block content %}
+<p>This page is meant to viewed as "frame" on farcaster.</p>
+
+<p>TODO: link to the frame explorer. maybe even redirect there</p>
+
+<p>TODO: call super?</p>
+{% endblock %}
+
+<html>
+<head>
+    <title>Frame</title>
+</head>
+</html>
