@@ -102,68 +102,44 @@ export default function Demo(
 
   return (
     <div className="w-[300px] mx-auto py-4 px-2">
-      <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
+      <h1 className="text-2xl font-bold text-center mb-4">{title || "Chandelier or Not?"}</h1>
 
       <div className="mb-4">
-        <h2>Post #{postId}</h2>
+        <h2 className="font-bold mb-4 text-center">Post #{postId}</h2>
 
         <div className="mb-4">
           <IpfsImage />
         </div>
 
         {!hasVoted && (
-          <div>
-            <div className="mb-4">
-              {/* todo: pretty side-by-side buttons */}
-              <Button onClick={voteYes}>Vote Yes</Button>
-            </div>
-            <div className="mb-4">
-              <Button onClick={voteNo}>Vote No</Button>
-            </div>
+          <div className="mb-4 flex justify-between space-x-2">
+            <Button className="px-4 py-2" onClick={voteYes}>Vote Yes</Button>
+            <Button className="px-4 py-2 bg-red-500 hover:bg-red-600" onClick={voteNo}>Vote No</Button>
           </div>
         )}
 
-        <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          Your Yes Balance: ?
-        </div>
-        <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          Your No Balance: ?
-        </div>
-        <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          Total Yes Balance: ?
-        </div>
-        <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          Total No Balance: ?
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <h2 className="font-2xl font-bold">Debugging</h2>
-        <button
-          onClick={toggleContext}
-          className="flex items-center gap-2 transition-colors"
-        >
-          <span
-            className={`transform transition-transform ${
-              isContextOpen ? "rotate-90" : ""
-            }`}
-          >
-            ➤
-          </span>
-          Tap to expand
-        </button>
-
-        {isContextOpen && (
+        <div className="mb-4">
           <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-              {JSON.stringify(context, null, 2)}
-            </pre>
-            
-            <IpfsComponent />
-
-            {/* TODO: contract addresses */}
+            Your Yes Balance: ? (of ? total)
           </div>
-        )}
+          <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            Your No Balance: ? (of ? total)
+          </div>
+        </div>
+
+        <div className="mb-4 flex justify-between space-x-2">
+          {/* TODO: disable previous button if we are post 0 */}
+          <Button className="px-4 py-2">
+            Previous Post
+          </Button>
+          {/* TODO: disable next button if we are at the last post */}
+          <Button className="px-4 py-2">
+            Next Post
+          </Button>
+          <Button className="px-4 py-2">
+            Random Post
+          </Button>
+        </div>
       </div>
 
       <div>
@@ -213,6 +189,35 @@ export default function Demo(
               )}
             </div>
           </>
+        )}
+      </div>
+
+      <div className="mb-4">
+        <h2 className="font-2xl font-bold">Debugging</h2>
+        <button
+          onClick={toggleContext}
+          className="flex items-center gap-2 transition-colors"
+        >
+          <span
+            className={`transform transition-transform ${
+              isContextOpen ? "rotate-90" : ""
+            }`}
+          >
+            ➤
+          </span>
+          Tap to expand
+        </button>
+
+        {isContextOpen && (
+          <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
+              {JSON.stringify(context, null, 2)}
+            </pre>
+            
+            <IpfsComponent />
+
+            {/* TODO: contract addresses */}
+          </div>
         )}
       </div>
 
