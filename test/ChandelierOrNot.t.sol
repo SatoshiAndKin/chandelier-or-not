@@ -24,7 +24,7 @@ contract ChandelierOrNotTest is Test {
         token = nft.token();
     }
 
-    function test_TokenMetadata() public {
+    function test_TokenMetadata() public view {
         assertEq(token.name(), "ChandelierOrNotToken", "unexpected token name");
         assertEq(token.symbol(), "CNOT", "unexpected token symbol");
         assertEq(token.decimals(), 6, "unexpected token decimals");
