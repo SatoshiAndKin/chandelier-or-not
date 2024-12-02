@@ -20,9 +20,9 @@ contract PostAndVoteScript is Script {
 
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
 
-        uint256 postId = nft.postAndVote(image_dir_uri, voteYes);
+        (uint256 postId, uint256 tokenId, uint256 amount) = nft.postAndVote(image_dir_uri, voteYes);
 
-        console.log("Post #", postId);
+        console.log("New Post:", postId, tokenId, amount);
 
         // TODO: vote here? i think i'll focus on having that in the frame instead
 

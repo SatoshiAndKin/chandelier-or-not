@@ -10,6 +10,10 @@ import {ERC20, ERC20Burnable} from "@openzeppelin/token/ERC20/extensions/ERC20Bu
 contract ChandelierOrNotToken is ERC20Burnable, Ownable {
     constructor() ERC20("ChandelierOrNotToken", "CNOT") Ownable(msg.sender) {}
 
+    function decimals() public pure override returns (uint8) {
+        return 6;
+    }
+
     // @notice this is only called by the ChandelierOrNot contract when a user votes
     function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);

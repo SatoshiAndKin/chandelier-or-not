@@ -81,6 +81,7 @@ curl --request POST \
 
 # forge script to post the DIR_CID to the chandelier contract
 export IMAGE_DIR_URI="ipfs://$DIR_CID"
+export VOTE_YES
 
 # TODO: try to fetch the image from some public ipfs gateways
 

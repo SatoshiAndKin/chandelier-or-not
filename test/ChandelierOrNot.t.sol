@@ -24,6 +24,12 @@ contract ChandelierOrNotTest is Test {
         token = nft.token();
     }
 
+    function test_TokenMetadata() public {
+        assertEq(token.name(), "ChandelierOrNotToken", "unexpected token name");
+        assertEq(token.symbol(), "CNOT", "unexpected token symbol");
+        assertEq(token.decimals(), 6, "unexpected token decimals");
+    }
+
     function test_AdminPost() public {
         uint256 postId = nft.post("https://example.com/post0");
         assertEq(postId, 0);

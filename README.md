@@ -92,7 +92,7 @@ Then, add the address to your `~/.env`
 Create a post:
 
 ```shell
-./script/post-to-chandelier-or-not.sh "~/Desktop/chandeliers/IMG_7856.png" --rpc-url http://127.0.0.1:8545
+./script/post-and-vote-to-chandelier-or-not.sh "~/Desktop/chandeliers/IMG_7856.png" "true" --rpc-url http://127.0.0.1:8545
 ```
 
 ### Production Deploy Steps
@@ -104,11 +104,12 @@ source .env
 ```shell
 forge script script/Deploy.s.sol:DeployScript \
     --broadcast \
+    --verify \
     --rpc-url "$BASE_RPC_URL"
 ```
 
 Create a post and vote for it:
 
 ```shell
-./script/post-to-chandelier-or-not.sh "$HOME/Desktop/chandeliers/IMG_7856.png" "true" --rpc-url "$BASE_RPC_URL"
+./script/post-and-vote-to-chandelier-or-not.sh "$HOME/Desktop/chandeliers/IMG_7856.png" "true" --rpc-url "$BASE_RPC_URL"
 ```
