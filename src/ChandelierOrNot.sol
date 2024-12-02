@@ -164,5 +164,4 @@ contract ChandelierOrNot is AccessControl, ERC1155Supply  {
             return string.concat(postURI, "/no.json");
         }
     }
-
 }
