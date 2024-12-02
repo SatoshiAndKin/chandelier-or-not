@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControl} from "@openzeppelin/access/AccessControl.sol";
 import {ERC1155Burnable} from "@openzeppelin/token/ERC1155/extensions/ERC1155Burnable.sol";
 import {ERC1155, ERC1155Supply} from "@openzeppelin/token/ERC1155/extensions/ERC1155Supply.sol";
 
