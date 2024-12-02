@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Script, console} from "forge-std/Script.sol";
 import {ChandelierOrNot, INeynarUserScoresReader} from "../src/ChandelierOrNot.sol";
 
-contract PostScript is Script {
+contract PostAndVoteScript is Script {
     ChandelierOrNot public nft;
 
     function setUp() public {}
@@ -16,9 +16,11 @@ contract PostScript is Script {
 
         string memory image_dir_uri = vm.envString("IMAGE_DIR_URI");
 
+        bool voteYes = vm.envBool("VOTE_YES");
+
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
 
-        uint256 postId = nft.post(image_dir_uri);
+        uint256 postId = nft.postAndVote(image_dir_uri, voteYes);
 
         console.log("Post #", postId);
 

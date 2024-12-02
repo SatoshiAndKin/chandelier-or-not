@@ -107,8 +107,8 @@ forge script script/Deploy.s.sol:DeployScript \
     --rpc-url "$BASE_RPC_URL"
 ```
 
-Create a post:
+Create a post and vote for it:
 
 ```shell
-./script/post-to-chandelier-or-not.sh "$HOME/Desktop/chandeliers/IMG_7856.png" --rpc-url "$BASE_RPC_URL"
+./script/post-to-chandelier-or-not.sh "$HOME/Desktop/chandeliers/IMG_7856.png" "true" --rpc-url "$BASE_RPC_URL"
 ```

@@ -3,12 +3,20 @@ set -eux -o pipefail
 
 # Usage: ./post-to-chandelier-or-not.sh <path-to-image>
 if [ -z "$1" ]; then
-    echo "Usage: $0 <path-to-image> <extra args for forge script>"
+    echo "Usage: $0 <path-to-image> <vote-yes> <extra args for forge script>"
     exit 1
 fi
 
 IMAGE_PATH="$1"
-shift
+
+if [ "$2" = "true" ]; then
+    VOTE_YES=true
+else
+    VOTE_YES=false
+fi
+
+shift 2
+
 
 source .env
 
@@ -78,8 +86,10 @@ export IMAGE_DIR_URI="ipfs://$DIR_CID"
 
 cd -
 
-forge script script/Post.s.sol:PostScript \
+forge script script/PostAndVote.s.sol:PostAndVoteScript \
     --broadcast \
     "$@"
 
-# TODO: create a post for the frame server
+# TODO: make sure the frame server can handle this post
+
+# TODO: create a farcaster post using neynar apis

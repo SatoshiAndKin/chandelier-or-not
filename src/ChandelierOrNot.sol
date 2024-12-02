@@ -69,6 +69,11 @@ contract ChandelierOrNot is AccessControl, ERC1155Supply  {
         emit NewPost(msg.sender, postId);
     }
 
+    function postAndVote(string calldata postDirURI, bool voteYes) public returns (uint256 postId, uint256 tokenId, uint256 amount) {
+        postId = post(postDirURI);
+        (tokenId, amount) = vote(postId, voteYes);
+    }
+
     function getPost(uint256 tokenId) public pure returns (uint256 x, bool yesVote) {
         x = tokenId / 2;
         yesVote = tokenId % 2 == 1;
