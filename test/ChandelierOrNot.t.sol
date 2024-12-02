@@ -41,7 +41,7 @@ contract ChandelierOrNotTest is Test {
         vm.startPrank(flashprofits);
         (uint256 yesTokenId, uint256 yesAmount) = nft.vote(postId, true);
 
-        uint256 noTokenId = yesTokenId - 1;
+        uint256 noTokenId = nft.getOppositeTokenId(yesTokenId);
 
         assertEq(yesTokenId, 1, "unexpected yesTokenId");
         assertEq(yesAmount, 1e6, "unexpected yesAmount");
@@ -61,7 +61,6 @@ contract ChandelierOrNotTest is Test {
     }
 
     function test_AnonUserPost() public {
-        // TODO: This should revert
         vm.prank(address(420));
 
         vm.expectRevert("ChandelierOrNot: low post score");
