@@ -54,7 +54,7 @@ contract ChandelierOrNot is AccessControl, ERC1155Supply  {
         if (hasRole(POSTER_ROLE, msg.sender)) {
             // all good. they have the poster role
         } else {
-            uint24 senderScore = neynarScores.getScore(msg.sender);
+            uint24 senderScore = neynarScores.getScoreWithEvent(msg.sender);
             if (senderScore >= minPostScore) {
                 // all good. they have a high enough score
             } else {
@@ -108,7 +108,7 @@ contract ChandelierOrNot is AccessControl, ERC1155Supply  {
      * The other is fully fungible.
      */
     function vote(uint256 postId, bool voteYes) public returns (uint256 tokenId, uint256 amount) {
-        uint24 senderScore = neynarScores.getScore(msg.sender);
+        uint24 senderScore = neynarScores.getScoreWithEvent(msg.sender);
 
         if (senderScore == 0) {
             // give everyone at least one token
