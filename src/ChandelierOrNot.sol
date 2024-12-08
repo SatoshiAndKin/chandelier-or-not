@@ -126,7 +126,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
         // maybe mint the fungible token
         // TODO: if user hurdle is not set, should we always mint or never mint?
-        if (address(userHurdle) != address(0) || userHurdle.voteTokenAllowed(msg.sender)) {
+        if (address(userHurdle) != address(0) && userHurdle.voteTokenAllowed(msg.sender)) {
             mintTokenAmount = 1 ether;
             token.mint(msg.sender, mintTokenAmount);
         }
