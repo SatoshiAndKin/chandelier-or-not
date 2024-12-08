@@ -8,11 +8,7 @@ import {Ownable} from "@solady/auth/Ownable.sol";
 import {ChandelierOrNotToken} from "./ChandelierOrNotToken.sol";
 import {IUserHurdle} from "./IUserHurdle.sol";
 
-// TODO: make it burnable and have a supply? not sure how to combine them. it complains about multiple _updates
 // TODO: bitmap for voted? we need a bitmap inside of a mapping though
-// TODO: gate mints on a score OR on having a token balance
-// TODO: allow changing your vote. need to use the new score properly
-
 contract ChandelierOrNot is Ownable, ERC6909  {
     using LibString for uint256;
 
