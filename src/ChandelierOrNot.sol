@@ -44,6 +44,12 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
     // internal functions
 
+    function _burn(address from, uint256 tokenId, uint256 amount) internal override {
+        super._burn(from, tokenId, amount);
+
+        totalSupply[tokenId] -= amount;
+    }
+
     function _mint(address to, uint256 tokenId, uint256 amount) internal override {
         totalSupply[tokenId] += amount;
 
