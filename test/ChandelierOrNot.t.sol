@@ -49,7 +49,7 @@ contract ChandelierOrNotTest is Test {
 
     function test_TheNormalFlow() public {
         vm.startPrank(owner);
-        uint256 postId = nft.post("https://example.com/post0");
+        uint96 postId = nft.post("https://example.com/post0");
         assertEq(postId, 0);
         assertEq(nft.nextPostId(), 1);
 
@@ -67,7 +67,7 @@ contract ChandelierOrNotTest is Test {
         assertEq(nft.balanceOf(flashprofits, noTokenId), 0, "unexpected balance of noTokenId");
         assertEq(token.balanceOf(flashprofits), yesAmount, "unexpected balance of token");
 
-        vm.expectRevert("ChandelierOrNot: already voted");
+        vm.expectRevert(ChandelierOrNot.AlreadyVoted.selector);
         nft.vote(postId, false);
 
         uint256 oppositeTokenId = nft.changeVote(yesTokenId, 1);

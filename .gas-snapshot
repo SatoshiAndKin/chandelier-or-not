@@ -1,5 +1,5 @@
-ChandelierOrNotTest:test_AdminPost() (gas: 67103)
-ChandelierOrNotTest:test_AnonUserPost() (gas: 19900)
-ChandelierOrNotTest:test_TheNormalFlow() (gas: 237616)
+ChandelierOrNotTest:test_AdminPost() (gas: 48298)
+ChandelierOrNotTest:test_AnonUserPost() (gas: 19938)
+ChandelierOrNotTest:test_TheNormalFlow() (gas: 218093)
 ChandelierOrNotTest:test_TokenMetadata() (gas: 13698)
 ChandelierOrNotTest:test_Verifications() (gas: 17797)

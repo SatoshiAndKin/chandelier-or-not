@@ -2,7 +2,9 @@
 pragma solidity ^0.8.28;
 
 import {ERC6909} from "@solady/tokens/ERC6909.sol";
+import {LibBitmap} from "@solady/utils/LibBitmap.sol";
 import {LibString} from "@solady/utils/LibString.sol";
+import {SafeCastLib} from "@solady/utils/SafeCastLib.sol";
 import {Ownable} from "@solady/auth/Ownable.sol";
 
 import {ChandelierOrNotToken} from "./ChandelierOrNotToken.sol";
@@ -10,18 +12,24 @@ import {IUserHurdle} from "./IUserHurdle.sol";
 
 // TODO: bitmap for voted? we need a bitmap inside of a mapping though
 contract ChandelierOrNot is Ownable, ERC6909  {
-    using LibString for uint256;
+    using LibBitmap for LibBitmap.Bitmap;
+    using LibString for uint96;
+    using SafeCastLib for uint256;
 
     IUserHurdle public userHurdle;
-    uint256 public nextPostId;
-    mapping(address who => mapping(uint256 postId => bool)) public voted;
+    uint96 public nextPostId;
+
     mapping(uint256 tokenId => uint256) public totalSupply;
 
-    mapping(uint256 postId => string) private _postURIs;
-
+    // our fungible token
     ChandelierOrNotToken immutable public token;
 
+    LibBitmap.Bitmap private _voted;
+    mapping(uint256 postId => string) private _postURIs;
+
     event NewPost(address indexed poster, uint256 postId);
+
+    error AlreadyVoted();
 
     constructor(address _owner, IUserHurdle _userHurdle) ERC6909() {
         userHurdle = _userHurdle;
@@ -32,6 +40,10 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     }
 
     // internal functions
+
+    function _packVotedKey(address who, uint96 postId) internal pure returns (uint256 x) {
+        x = uint256(uint160(who)) << 96 | postId;
+    }
 
     function _mint(address to, uint256 tokenId, uint256 amount) internal override {
         totalSupply[tokenId] += amount;
@@ -50,7 +62,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     // @notice The metadata_uri MUST point to a JSON file that conforms to the "ERC-1155 Metadata URI JSON Schema".
     // @notice <https://eips.ethereum.org/EIPS/eip-1155#metadata>
     // TODO: should the yes and no votes have different uris? 
-    function post(string calldata postDirURI) public returns (uint256 postId) {
+    function post(string calldata postDirURI) public returns (uint96 postId) {
         if (address(userHurdle) != address(0) && !userHurdle.postAllowed(msg.sender)) {
             revert("ChandelierOrNot: not allowed to post");
         }
@@ -62,17 +74,17 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         emit NewPost(msg.sender, postId);
     }
 
-    function postAndVote(string calldata postDirURI, bool voteYes) public returns (uint256 postId, uint256 tokenId, uint256 amount) {
+    function postAndVote(string calldata postDirURI, bool voteYes) public returns (uint96 postId, uint256 tokenId, uint256 amount) {
         postId = post(postDirURI);
         (tokenId, amount) = vote(postId, voteYes);
     }
 
-    function getPost(uint256 tokenId) public pure returns (uint256 x, bool yesVote) {
-        x = tokenId / 2;
+    function getPost(uint256 tokenId) public pure returns (uint96 postId, bool yesVote) {
+        postId = (tokenId / 2).toUint96();
         yesVote = tokenId % 2 == 1;
     }
 
-    function getTokenId(uint256 postId, bool yesVote) public pure returns (uint256 x) {
+    function getTokenId(uint96 postId, bool yesVote) public pure returns (uint256 x) {
         x = postId * 2 + (yesVote ? 1 : 0);
     }
 
@@ -85,7 +97,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     }
 
     // @dev ties go to No
-    function winner(uint256 postId) public view returns (bool yesIsWinning, uint256 yesVotes, uint256 noVotes) {
+    function winner(uint96 postId) public view returns (bool yesIsWinning, uint256 yesVotes, uint256 noVotes) {
         // this could be gas golfed, but i want readability
         uint256 noTokenId = getTokenId(postId, false);
         uint256 yesTokenId = noTokenId + 1;
@@ -100,10 +112,12 @@ contract ChandelierOrNot is Ownable, ERC6909  {
      * One is connected to the picture and your vote.
      * The other is fully fungible.
      */
-    function vote(uint256 postId, bool voteYes) public returns (uint256 tokenId, uint256 mintTokenAmount) {
+    function vote(uint96 postId, bool voteYes) public returns (uint256 tokenId, uint256 mintTokenAmount) {
         // make sure the user hasn't already voted for this post
-        require(!voted[msg.sender][postId], "ChandelierOrNot: already voted");
-        voted[msg.sender][postId] = true;
+        uint256 votedKey = _packVotedKey(msg.sender, postId);
+
+        require(!_voted.get(votedKey), AlreadyVoted());
+        _voted.set(votedKey);
 
         tokenId = getTokenId(postId, voteYes);
 
@@ -132,7 +146,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
     /// @dev Returns the name for token `id`.
     function name(uint256 tokenId) public pure override returns (string memory) {
-        (uint256 postId, bool votedYes) = getPost(tokenId);
+        (uint96 postId, bool votedYes) = getPost(tokenId);
 
         if (votedYes) {
             return string(abi.encodePacked("Chandelier #", postId.toString()));
@@ -143,7 +157,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
     /// @dev Returns the symbol for token `id`.
     function symbol(uint256 tokenId) public pure override returns (string memory) {
-        (uint256 postId, bool votedYes) = getPost(tokenId);
+        (uint96 postId, bool votedYes) = getPost(tokenId);
 
         if (votedYes) {
             return string(abi.encodePacked("CNOT-Y#", postId.toString()));
@@ -153,7 +167,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     }
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        (uint256 postId, bool votedYes) = getPost(tokenId);
+        (uint96 postId, bool votedYes) = getPost(tokenId);
 
         require(postId < nextPostId, "ChandelierOrNot: invalid post id");
 
