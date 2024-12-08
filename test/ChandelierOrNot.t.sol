@@ -36,6 +36,16 @@ contract ChandelierOrNotTest is Test {
         assertEq(verifications.getFidWithEvent(0x2699C32A793D58691419A054DA69414dF186b181), 3253, "unexpected fid with event");
     }
 
+    function test_NftMetadata() public view {
+        assertEq(nft.name(0), "Not a Chandelier #0", "unexpected no nft name");
+        assertEq(nft.symbol(0), "CNOT-N0", "unexpected no nft symbol");
+        assertEq(nft.decimals(0), 0, "unexpected no nft decimals");
+
+        assertEq(nft.name(1), "Chandelier #0", "unexpected yes nft name");
+        assertEq(nft.symbol(1), "CNOT-Y0", "unexpected yes nft symbol");
+        assertEq(nft.decimals(1), 0, "unexpected yes nft decimals");
+    }
+
     function test_TokenMetadata() public view {
         assertEq(token.name(), "Chandelier or Not Votes", "unexpected token name");
         assertEq(token.symbol(), "CNOT", "unexpected token symbol");
@@ -49,7 +59,7 @@ contract ChandelierOrNotTest is Test {
         assertEq(nft.nextPostId(), 1);
     }
 
-    function test_packVotedKey() public {
+    function test_packVotedKey() public view {
         address user = 0x2699C32A793D58691419A054DA69414dF186b181;
 
         uint256 minVotedKey = nft.packVotedKey(user, 0);

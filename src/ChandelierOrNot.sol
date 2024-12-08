@@ -66,7 +66,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         userHurdle = _userHurdle;
     }
 
-    // high score-only functions
+    // user hurdle functions
 
     // @notice The metadata_uri MUST point to a JSON file that conforms to the "ERC-1155 Metadata URI JSON Schema".
     // @notice <https://eips.ethereum.org/EIPS/eip-1155#metadata>
@@ -86,35 +86,6 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     function postAndVote(string calldata postDirURI, bool voteYes) public returns (uint96 postId, uint256 tokenId, uint256 amount) {
         postId = post(postDirURI);
         (tokenId, amount) = vote(postId, voteYes);
-    }
-
-    function getPost(uint256 tokenId) public pure returns (uint96 postId, bool yesVote) {
-        postId = (tokenId / 2).toUint96();
-        yesVote = tokenId % 2 == 1;
-    }
-
-    function getTokenId(uint96 postId, bool yesVote) public pure returns (uint256 x) {
-        x = postId * 2 + (yesVote ? 1 : 0);
-    }
-
-    function getOppositeTokenId(uint256 tokenId) public pure returns (uint256 x) {
-        if (tokenId % 2 == 0) {
-            x = tokenId + 1;
-        } else {
-            x = tokenId - 1;
-        }
-    }
-
-    // @dev ties go to No
-    function winner(uint96 postId) public view returns (bool yesIsWinning, uint256 yesVotes, uint256 noVotes) {
-        // this could be gas golfed, but i want readability
-        uint256 noTokenId = getTokenId(postId, false);
-        uint256 yesTokenId = noTokenId + 1;
-
-        yesVotes = totalSupply[yesTokenId];
-        noVotes = totalSupply[noTokenId];
-
-        yesIsWinning = yesVotes > noVotes;
     }
 
     /** most projects give you one token. Here, you get two!
@@ -142,6 +113,8 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         }
     }
 
+    // public functions
+
     // @notice swap `amount` of your vote tokens to the other side
     function changeVote(uint256 tokenId, uint256 amount) public returns (uint256 oppositeTokenId) {
         // this will revert if the sender doesn't have enough tokens
@@ -152,7 +125,22 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         _mint(msg.sender, oppositeTokenId, amount);
     }
 
-    // public functions
+    function getPost(uint256 tokenId) public pure returns (uint96 postId, bool yesVote) {
+        postId = (tokenId / 2).toUint96();
+        yesVote = tokenId % 2 == 1;
+    }
+
+    function getTokenId(uint96 postId, bool yesVote) public pure returns (uint256 x) {
+        x = postId * 2 + (yesVote ? 1 : 0);
+    }
+
+    function getOppositeTokenId(uint256 tokenId) public pure returns (uint256 x) {
+        if (tokenId % 2 == 0) {
+            x = tokenId + 1;
+        } else {
+            x = tokenId - 1;
+        }
+    }
 
     function decimals(uint256 /*id*/) public pure override returns (uint8) {
         return 0;
@@ -173,18 +161,14 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         }
     }
 
-    function packVotedKey(address who, uint96 postId) external pure returns (uint256) {
-        return _packVotedKey(who, postId);
-    }
-
     /// @dev Returns the symbol for token `id`.
     function symbol(uint256 tokenId) public pure override returns (string memory) {
         (uint96 postId, bool votedYes) = getPost(tokenId);
 
         if (votedYes) {
-            return string(abi.encodePacked("CNOT-Y#", postId.toString()));
+            return string(abi.encodePacked("CNOT-Y", postId.toString()));
         } else {
-            return string(abi.encodePacked("CNOT-N#", postId.toString()));
+            return string(abi.encodePacked("CNOT-N", postId.toString()));
         }
     }
 
@@ -200,5 +184,23 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         } else {
             return string.concat(postURI, "/no.json");
         }
+    }
+
+    // external functions
+
+    function packVotedKey(address who, uint96 postId) external pure returns (uint256) {
+        return _packVotedKey(who, postId);
+    }
+
+    // @dev ties go to No
+    function winner(uint96 postId) external view returns (bool yesIsWinning, uint256 yesVotes, uint256 noVotes) {
+        // this could be gas golfed, but i want readability
+        uint256 noTokenId = getTokenId(postId, false);
+        uint256 yesTokenId = noTokenId + 1;
+
+        yesVotes = totalSupply[yesTokenId];
+        noVotes = totalSupply[noTokenId];
+
+        yesIsWinning = yesVotes > noVotes;
     }
 }
