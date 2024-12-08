@@ -50,6 +50,10 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         super._mint(to, tokenId, amount);
     }
 
+    function _packVotedKey(address who, uint96 postId) internal pure returns (uint256 x) {
+        x = uint256(uint160(who)) << 96 | uint256(postId);
+    }
+
     // owner-only functions
 
     function setUserHurdle(IUserHurdle _userHurdle) public onlyOwner {
@@ -113,9 +117,10 @@ contract ChandelierOrNot is Ownable, ERC6909  {
      */
     function vote(uint96 postId, bool voteYes) public returns (uint256 tokenId, uint256 mintTokenAmount) {
         // make sure the user hasn't already voted for this post
-        uint256 votedKey = packVotedKey(msg.sender, postId);
-
+        uint256 votedKey = _packVotedKey(msg.sender, postId);
         require(!_voted.get(votedKey), AlreadyVoted());
+
+        // save that the user has voted
         _voted.set(votedKey);
 
         tokenId = getTokenId(postId, voteYes);
@@ -143,8 +148,12 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
     // public functions
 
+    function decimals(uint256 /*id*/) public pure override returns (uint8) {
+        return 0;
+    }
+
     function hasVoted(address who, uint96 postId) public view returns (bool) {
-        return _voted.get(packVotedKey(who, postId));
+        return _voted.get(_packVotedKey(who, postId));
     }
 
     /// @dev Returns the name for token `id`.
@@ -158,8 +167,8 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         }
     }
 
-    function packVotedKey(address who, uint96 postId) public pure returns (uint256 x) {
-        x = uint256(uint160(who)) << 96 | uint256(postId);
+    function packVotedKey(address who, uint96 postId) external pure returns (uint256) {
+        return _packVotedKey(who, postId);
     }
 
     /// @dev Returns the symbol for token `id`.

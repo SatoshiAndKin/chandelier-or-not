@@ -81,9 +81,6 @@ contract ChandelierOrNotTest is Test {
         assertEq(nft.balanceOf(flashprofits, noTokenId), 0, "unexpected balance of noTokenId");
         assertEq(token.balanceOf(flashprofits), yesAmount, "unexpected balance of token");
 
-        uint256 votedKey = nft.packVotedKey(flashprofits, postId);
-        console.log("votedKey:", votedKey);
-
         assertEq(nft.hasVoted(flashprofits, postId), true, "unexpected hasVoted");
 
         vm.expectRevert(ChandelierOrNot.AlreadyVoted.selector);
