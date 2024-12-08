@@ -85,6 +85,9 @@ contract ChandelierOrNotTest is Test {
 
         uint256 noTokenId = nft.getOppositeTokenId(yesTokenId);
 
+        assertEq(nft.tokenURI(yesTokenId), "https://example.com/post0/yes.json");
+        assertEq(nft.tokenURI(noTokenId), "https://example.com/post0/no.json");
+
         assertEq(yesTokenId, 1, "unexpected yesTokenId");
         assertEq(yesAmount, 1 ether, "unexpected yesAmount");
         assertEq(nft.balanceOf(flashprofits, yesTokenId), 1, "unexpected balance of yesTokenId");
