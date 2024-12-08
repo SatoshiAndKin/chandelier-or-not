@@ -20,31 +20,38 @@ contract StakedToken is ERC20 {
     using SafeTransferLib for address;
 
     // TODO: this tracks the balances, but ERC20 also tracks the balance. we should probably improve that
-    TwabController immutable public twabController;
+    TwabController public immutable twabController;
 
-    ERC4626 immutable public vault;
+    ERC4626 public immutable vault;
 
-    PointsToken immutable public pointsToken;
+    PointsToken public immutable pointsToken;
 
-    ERC20 immutable public asset;
-    uint8 immutable internal assetDecimals;
+    ERC20 public immutable asset;
+    uint8 internal immutable assetDecimals;
 
     uint256 public totalForwardedShares;
     uint256 public totalForwardedValue;
 
-    uint256 public immutable depositFee;  // divided by 1e6
-    address immutable public earningsAddress;
-    uint32 immutable internal deployTimestamp;
+    uint256 public immutable depositFee; // divided by 1e6
+    address public immutable earningsAddress;
+    uint32 internal immutable deployTimestamp;
 
     struct ForwardedEarnings {
         uint256 shares;
         uint256 amount;
     }
+
     mapping(uint32 => ForwardedEarnings) public forwardedEarningsByPeriod;
 
     mapping(address => uint256 lastClaimTimestamp) public playerClaims;
 
-    constructor(ERC20 _asset, address _earningsAddress, TwabController _twabController, ERC4626 _vault, uint256 _depositFee) {
+    constructor(
+        ERC20 _asset,
+        address _earningsAddress,
+        TwabController _twabController,
+        ERC4626 _vault,
+        uint256 _depositFee
+    ) {
         twabController = _twabController;
 
         vault = _vault;
@@ -68,8 +75,8 @@ contract StakedToken is ERC20 {
         // TODO: put this in a try and ignore errors. we don't want to block the whole contract
         // TODO: only do if a certain amount of time has passed since the last time this was run
         // TODO: only do this if the vault share price has changed
-        try this.forwardEarnings() {
-        } catch {
+        try this.forwardEarnings() {}
+        catch {
             // do nothing
         }
     }
@@ -121,7 +128,7 @@ contract StakedToken is ERC20 {
         // TODO: optional fees here?
         if (depositFee > 0) {
             uint256 feeAmount = FixedPointMathLib.fullMulDiv(redeemableAmount, 1e6, depositFee);
-            require (feeAmount > 0, "feeAmount is 0");
+            require(feeAmount > 0, "feeAmount is 0");
             _mint(earningsAddress, feeAmount);
             _mint(to, redeemableAmount - feeAmount);
         } else {
@@ -144,7 +151,7 @@ contract StakedToken is ERC20 {
 
         if (depositFee > 0) {
             uint256 feeAmount = FixedPointMathLib.fullMulDiv(redeemableAmount, 1e6, depositFee);
-            require (feeAmount > 0, "feeAmount is 0");
+            require(feeAmount > 0, "feeAmount is 0");
             _mint(earningsAddress, feeAmount);
             _mint(to, redeemableAmount - feeAmount);
         } else {
@@ -159,13 +166,17 @@ contract StakedToken is ERC20 {
     }
 
     /// @notice the primary function for users to exchange their game tokens for the originally deposited value
-    function withdrawAsset(uint256 amount) decentralizedButtonPushing public returns (uint256 shares) {
+    function withdrawAsset(uint256 amount) public decentralizedButtonPushing returns (uint256 shares) {
         return withdrawAsset(amount, msg.sender, msg.sender);
     }
 
     /// @notice redeems game tokens for the vault token
     // TODO: do we want vault token or asset token? need functions for both
-    function withdrawAsset(uint256 amount, address to, address owner) decentralizedButtonPushing public returns (uint256 shares) {
+    function withdrawAsset(uint256 amount, address to, address owner)
+        public
+        decentralizedButtonPushing
+        returns (uint256 shares)
+    {
         if (owner != msg.sender) {
             _spendAllowance(owner, msg.sender, amount);
         }
@@ -179,12 +190,16 @@ contract StakedToken is ERC20 {
         address(asset).safeTransfer(to, amount);
     }
 
-    function withdrawAssetAsVault(uint256 amount) decentralizedButtonPushing public returns (uint256 shares) {
+    function withdrawAssetAsVault(uint256 amount) public decentralizedButtonPushing returns (uint256 shares) {
         return withdrawAssetAsVault(amount, msg.sender, msg.sender);
     }
 
     /// @notice this method is necessary if the vault has limited withdrawal capacity
-    function withdrawAssetAsVault(uint256 amount, address to, address owner) decentralizedButtonPushing public returns (uint256 shares) {
+    function withdrawAssetAsVault(uint256 amount, address to, address owner)
+        public
+        decentralizedButtonPushing
+        returns (uint256 shares)
+    {
         if (owner != msg.sender) {
             _spendAllowance(owner, msg.sender, amount);
         }
@@ -197,11 +212,15 @@ contract StakedToken is ERC20 {
         vault.transfer(to, shares);
     }
 
-    function withdrawVault(uint256 shares) decentralizedButtonPushing public returns (uint256 amount) {
+    function withdrawVault(uint256 shares) public decentralizedButtonPushing returns (uint256 amount) {
         return withdrawVault(shares, msg.sender, msg.sender);
     }
 
-    function withdrawVault(uint256 shares, address to, address owner) decentralizedButtonPushing public returns (uint256 amount) {
+    function withdrawVault(uint256 shares, address to, address owner)
+        public
+        decentralizedButtonPushing
+        returns (uint256 amount)
+    {
         // redeem takes the amount of shares
         amount = vault.previewRedeem(shares);
 
@@ -297,8 +316,10 @@ contract StakedToken is ERC20 {
             // TODO: tests for how it handles wrapping!
             uint32 claimUpTo = uint32(lastClaimTimestamp + periodDuration);
 
-            uint256 weightedBalance = twabController.getTwabBetween(address(this), player, lastClaimTimestamp, claimUpTo);
-            uint256 weightedTotalSupply = twabController.getTotalSupplyTwabBetween(address(this), lastClaimTimestamp, claimUpTo);
+            uint256 weightedBalance =
+                twabController.getTwabBetween(address(this), player, lastClaimTimestamp, claimUpTo);
+            uint256 weightedTotalSupply =
+                twabController.getTotalSupplyTwabBetween(address(this), lastClaimTimestamp, claimUpTo);
 
             points += FixedPointMathLib.fullMulDiv(periodEarnings.amount, weightedBalance, weightedTotalSupply);
 

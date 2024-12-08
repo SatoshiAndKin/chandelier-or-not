@@ -32,6 +32,5 @@ contract DeployScript is Script {
         console.log("ChandelierOrNot deployed at", address(nft));
 
         vm.stopBroadcast();
-
     }
 }

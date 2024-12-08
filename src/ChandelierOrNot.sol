@@ -12,7 +12,7 @@ import {ChandelierOrNotToken} from "./ChandelierOrNotToken.sol";
 import {IUserHurdle} from "./IUserHurdle.sol";
 
 // TODO: bitmap for voted? we need a bitmap inside of a mapping though
-contract ChandelierOrNot is Ownable, ERC6909  {
+contract ChandelierOrNot is Ownable, ERC6909 {
     using LibBitmap for LibBitmap.Bitmap;
     using LibString for uint8;
     using LibString for uint96;
@@ -28,7 +28,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     mapping(uint256 postId => string) private _imageURIs;
 
     // our fungible token
-    ChandelierOrNotToken immutable public token;
+    ChandelierOrNotToken public immutable token;
 
     // events
     event NewPost(address indexed poster, uint256 postId);
@@ -72,7 +72,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
     /// @notice The metadata_uri MUST point to a JSON file that conforms to the "ERC-1155 Metadata URI JSON Schema".
     /// @notice <https://eips.ethereum.org/EIPS/eip-1155#metadata>
-    /// todo: should the yes and no votes have different images? 
+    /// todo: should the yes and no votes have different images?
     function post(string calldata imageURI) public returns (uint96 postId) {
         if (address(userHurdle) != address(0) && !userHurdle.postAllowed(msg.sender)) {
             revert("ChandelierOrNot: not allowed to post");
@@ -85,12 +85,16 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         emit NewPost(msg.sender, postId);
     }
 
-    function postAndVote(string calldata postDirURI, bool voteYes) public returns (uint96 postId, uint256 tokenId, uint256 amount) {
+    function postAndVote(string calldata postDirURI, bool voteYes)
+        public
+        returns (uint96 postId, uint256 tokenId, uint256 amount)
+    {
         postId = post(postDirURI);
         (tokenId, amount) = vote(postId, voteYes);
     }
 
-    /** most projects give you one token. Here, you get two!
+    /**
+     * most projects give you one token. Here, you get two!
      * One is connected to the picture and your vote.
      * The other is fully fungible.
      */
@@ -148,7 +152,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     }
 
     /// @dev This NFT contract does not have any decimals.
-    function decimals(uint256 /*tokenId*/) public pure override returns (uint8) {
+    function decimals(uint256 /*tokenId*/ ) public pure override returns (uint8) {
         return 0;
     }
 
@@ -180,27 +184,31 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     }
 
     /// @dev Returns the uri for `tokenId`.
-   function tokenURI(uint256 tokenId) public view override returns (string memory) {
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
         (uint96 postId, bool votedYes) = getPost(tokenId);
 
         require(postId < nextPostId, "ChandelierOrNot: invalid post id");
 
         bytes memory dataURI = abi.encodePacked(
-            '{',
-                '"name":"', name(tokenId), '",',
-                '"symbol":"', symbol(tokenId), '",',
-                '"decimals":"', decimals(tokenId).toString(), '",',
-                '"image":"', _imageURIs[postId], '",',
-                '"votedYes":', votedYes ? "true" : "false",
-            '}'
+            "{",
+            '"name":"',
+            name(tokenId),
+            '",',
+            '"symbol":"',
+            symbol(tokenId),
+            '",',
+            '"decimals":"',
+            decimals(tokenId).toString(),
+            '",',
+            '"image":"',
+            _imageURIs[postId],
+            '",',
+            '"votedYes":',
+            votedYes ? "true" : "false",
+            "}"
         );
 
-        return string(
-            abi.encodePacked(
-                "data:application/json;base64,",
-                Base64.encode(dataURI)
-            )
-        );
+        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(dataURI)));
     }
 
     // external functions

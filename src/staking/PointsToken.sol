@@ -8,11 +8,11 @@ import {SafeTransferLib} from "@solady/utils/SafeTransferLib.sol";
 import {TwabController} from "@pooltogether-v5-twab-controller/TwabController.sol";
 
 contract PointsToken is ERC20 {
-    address immutable public stakedToken;
-    ERC20 immutable public asset;
+    address public immutable stakedToken;
+    ERC20 public immutable asset;
 
     // TODO: this tracks the balances, but ERC20 also tracks the balance. we should probably improve that
-    TwabController immutable public twabController;
+    TwabController public immutable twabController;
 
     constructor(ERC20 _asset, TwabController _twabController) {
         asset = _asset;

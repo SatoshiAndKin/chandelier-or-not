@@ -3,8 +3,9 @@ pragma solidity ^0.8.28;
 
 import {ERC20} from "@solady/tokens/ERC20.sol";
 
-/** I could bundle this inside the ChandelierOrNot contract, but a lot of exchanges only support ERC20 and not ERC1155.
-    So this is simplest
+/**
+ * I could bundle this inside the ChandelierOrNot contract, but a lot of exchanges only support ERC20 and not ERC1155.
+ *     So this is simplest
  */
 contract ChandelierOrNotToken is ERC20 {
     error NotMinter();

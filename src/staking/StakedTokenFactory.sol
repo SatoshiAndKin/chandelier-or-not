@@ -25,7 +25,10 @@ contract StakedTokenFactory {
     }
 
     // TODO: should earnings be a list? maybe with a list for shares too? that seems like a common need
-    function createStakedToken(ERC4626 vault, address earnings, uint256 depositFee) public returns (StakedToken stakedToken) {
+    function createStakedToken(ERC4626 vault, address earnings, uint256 depositFee)
+        public
+        returns (StakedToken stakedToken)
+    {
         ERC20 asset = ERC20(vault.asset());
 
         // TODO: use LibClone for StakedToken. the token uses immutables though so we need to figure out clones with immutables

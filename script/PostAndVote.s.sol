@@ -14,13 +14,13 @@ contract PostAndVoteScript is Script {
     function run() public {
         nft = ChandelierOrNot(vm.envAddress("CNOT_ADDRESS"));
 
-        string memory image_dir_uri = vm.envString("IMAGE_DIR_URI");
+        string memory image_uri = vm.envString("IMAGE_URI");
 
         bool voteYes = vm.envBool("VOTE_YES");
 
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
 
-        (uint256 postId, uint256 tokenId, uint256 amount) = nft.postAndVote(image_dir_uri, voteYes);
+        (uint256 postId, uint256 tokenId, uint256 amount) = nft.postAndVote(image_uri, voteYes);
 
         console.log("New Post:", postId, tokenId, amount);
 

@@ -42,7 +42,9 @@ contract ChandelierOrNotTest is Test {
     }
 
     function test_Verifications() public {
-        assertEq(verifications.getFidWithEvent(0x2699C32A793D58691419A054DA69414dF186b181), 3253, "unexpected fid with event");
+        assertEq(
+            verifications.getFidWithEvent(0x2699C32A793D58691419A054DA69414dF186b181), 3253, "unexpected fid with event"
+        );
     }
 
     function test_NftMetadata() public view {
@@ -94,8 +96,14 @@ contract ChandelierOrNotTest is Test {
 
         uint256 noTokenId = nft.getOppositeTokenId(yesTokenId);
 
-        assertEq(nft.tokenURI(yesTokenId), "data:application/json;base64,eyJuYW1lIjoiQ2hhbmRlbGllciAjMCIsInN5bWJvbCI6IkNOT1QtWTAiLCJkZWNpbWFscyI6IjAiLCJpbWFnZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vcG9zdDAucG5nIiwidm90ZWRZZXMiOnRydWV9");
-        assertEq(nft.tokenURI(noTokenId), "data:application/json;base64,eyJuYW1lIjoiTm90IGEgQ2hhbmRlbGllciAjMCIsInN5bWJvbCI6IkNOT1QtTjAiLCJkZWNpbWFscyI6IjAiLCJpbWFnZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vcG9zdDAucG5nIiwidm90ZWRZZXMiOmZhbHNlfQ==");
+        assertEq(
+            nft.tokenURI(yesTokenId),
+            "data:application/json;base64,eyJuYW1lIjoiQ2hhbmRlbGllciAjMCIsInN5bWJvbCI6IkNOT1QtWTAiLCJkZWNpbWFscyI6IjAiLCJpbWFnZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vcG9zdDAucG5nIiwidm90ZWRZZXMiOnRydWV9"
+        );
+        assertEq(
+            nft.tokenURI(noTokenId),
+            "data:application/json;base64,eyJuYW1lIjoiTm90IGEgQ2hhbmRlbGllciAjMCIsInN5bWJvbCI6IkNOT1QtTjAiLCJkZWNpbWFscyI6IjAiLCJpbWFnZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vcG9zdDAucG5nIiwidm90ZWRZZXMiOmZhbHNlfQ=="
+        );
 
         assertEq(yesTokenId, 1, "unexpected yesTokenId");
         assertEq(yesAmount, 1 ether, "unexpected yesAmount");
