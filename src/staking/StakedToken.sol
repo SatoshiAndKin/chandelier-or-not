@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // TODO: i don't love the name. finish renaming gamet oken to staked token
-pragma solidity 0.8.28;
+pragma solidity ^0.8.28;
 
 // TODO: move most of the NFT logic here
 // TODO: give tokens based on deposits. make sure someone depositing can't reduce someone else's withdraw
@@ -68,8 +68,7 @@ contract StakedToken is ERC20 {
         // TODO: put this in a try and ignore errors. we don't want to block the whole contract
         // TODO: only do if a certain amount of time has passed since the last time this was run
         // TODO: only do this if the vault share price has changed
-        try {
-            forwardEarnings();
+        try this.forwardEarnings() {
         } catch {
             // do nothing
         }
@@ -120,8 +119,9 @@ contract StakedToken is ERC20 {
         redeemableAmount = vault.previewRedeem(shares);
 
         // TODO: optional fees here?
-        if depositFee > 0 {
-            feeAmount = FixedPointMathLib.fullMulDiv(redeemableAmount, 1e6, depositFee);
+        if (depositFee > 0) {
+            uint256 feeAmount = FixedPointMathLib.fullMulDiv(redeemableAmount, 1e6, depositFee);
+            require (feeAmount > 0, "feeAmount is 0");
             _mint(earningsAddress, feeAmount);
             _mint(to, redeemableAmount - feeAmount);
         } else {
@@ -142,8 +142,9 @@ contract StakedToken is ERC20 {
         // redeem takes the amount of shares
         redeemableAmount = vault.previewRedeem(shares);
 
-        if depositFee > 0 {
-            feeAmount = FixedPointMathLib.fullMulDiv(redeemableAmount, 1e6, depositFee);
+        if (depositFee > 0) {
+            uint256 feeAmount = FixedPointMathLib.fullMulDiv(redeemableAmount, 1e6, depositFee);
+            require (feeAmount > 0, "feeAmount is 0");
             _mint(earningsAddress, feeAmount);
             _mint(to, redeemableAmount - feeAmount);
         } else {
