@@ -141,7 +141,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         if (votedYes) {
             return string(abi.encodePacked("Chandelier #", postId.toString()));
         } else {
-            return string(abi.encodePacked("Not a Chandelier #{id}", postId.toString()));
+            return string(abi.encodePacked("Not a Chandelier #", postId.toString()));
         }
     }
 
