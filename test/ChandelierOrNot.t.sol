@@ -2,24 +2,27 @@
 pragma solidity ^0.8.28;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ChandelierOrNot, ChandelierOrNotToken, INeynarUserScoresReader} from "../src/ChandelierOrNot.sol";
+import {ChandelierOrNot, ChandelierOrNotToken} from "../src/ChandelierOrNot.sol";
+import {INeynarVerificationsReader} from "../src/INeynarVerificationsReader.sol";
+import {IUserHurdle, UserHurdle} from "../src/UserHurdle.sol";
 
 contract ChandelierOrNotTest is Test {
     uint256 baseFork;
 
+    UserHurdle public userHurdle;
     ChandelierOrNot public nft;
     ChandelierOrNotToken public token;
-    INeynarUserScoresReader public scores;
+    INeynarVerificationsReader public verifications;
 
     function setUp() public {
         baseFork = vm.createFork(vm.envString("BASE_RPC_URL"), 23153749);
         vm.selectFork(baseFork);
 
-        uint24 mintScore = type(uint24).max;  // 1e6 is the real max. setting to u24 max means only approved addresses can mint
+        verifications = INeynarVerificationsReader(vm.envAddress("NN_VERIFICATIONS_ADDRESS"));
 
-        scores = INeynarUserScoresReader(vm.envAddress("NN_USER_SCORES_ADDRESS"));
+        userHurdle = new UserHurdle(verifications);
 
-        nft = new ChandelierOrNot(mintScore, scores);
+        nft = new ChandelierOrNot(IUserHurdle(userHurdle));
 
         token = nft.token();
     }

@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
-import {ChandelierOrNot, INeynarUserScoresReader} from "../src/ChandelierOrNot.sol";
+import {ChandelierOrNot} from "../src/ChandelierOrNot.sol";
 
 contract PostAndVoteScript is Script {
     ChandelierOrNot public nft;

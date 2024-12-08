@@ -10,3 +10,6 @@
 [submodule "lib/tokenized-strategy"]
 	path = lib/tokenized-strategy
 	url = https://github.com/yearn/tokenized-strategy
+[submodule "lib/solady"]
+	path = lib/solady
+	url = https://github.com/Vectorized/solady

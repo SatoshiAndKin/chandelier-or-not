@@ -2,26 +2,25 @@
 pragma solidity ^0.8.28;
 
 import {AccessControl} from "@openzeppelin/access/AccessControl.sol";
-import {ERC1155Burnable} from "@openzeppelin/token/ERC1155/extensions/ERC1155Burnable.sol";
-import {ERC1155, ERC1155Supply} from "@openzeppelin/token/ERC1155/extensions/ERC1155Supply.sol";
+import {ERC6909} from "@solady/tokens/ERC6909.sol";
+import {LibString} from "@solady/utils/LibString.sol";
 
 import {ChandelierOrNotToken} from "./ChandelierOrNotToken.sol";
-import {INeynarUserScoresReader} from "./INeynarUserScoresReader.sol";
+import {IUserHurdle} from "./IUserHurdle.sol";
 
 // TODO: make it burnable and have a supply? not sure how to combine them. it complains about multiple _updates
 // TODO: bitmap for voted? we need a bitmap inside of a mapping though
 // TODO: gate mints on a score OR on having a token balance
 // TODO: allow changing your vote. need to use the new score properly
+// TODO: ERC6909 instead of 1155
 
-contract ChandelierOrNot is AccessControl, ERC1155Supply  {
-    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
-    bytes32 public constant POSTER_ROLE = keccak256("POSTER_ROLE");
-    string public constant name = "ChandelierOrNot";
+contract ChandelierOrNot is AccessControl, ERC6909  {
+    using LibString for uint256;
 
-    uint24 public minPostScore;
+    IUserHurdle public userHurdle;
     uint256 public nextPostId;
-    INeynarUserScoresReader public neynarScores;
     mapping(address who => mapping(uint256 postId => bool)) public voted;
+    mapping(uint256 tokenId => uint256) public totalSupply;
 
     mapping(uint256 postId => string) private _postURIs;
 
@@ -29,20 +28,26 @@ contract ChandelierOrNot is AccessControl, ERC1155Supply  {
 
     event NewPost(address indexed poster, uint256 postId);
 
-    constructor(uint24 _minPostScore, INeynarUserScoresReader _neynarScores) ERC1155("") {
-        minPostScore = _minPostScore;
-        neynarScores = _neynarScores;
+    constructor(IUserHurdle _userHurdle) ERC6909() {
+        userHurdle = _userHurdle;
 
-        _grantRole(MANAGER_ROLE, msg.sender);
-        _grantRole(POSTER_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         token = new ChandelierOrNotToken();
     }
 
+    // internal functions
+
+    function _mint(address to, uint256 tokenId, uint256 amount) internal override {
+        totalSupply[tokenId] += amount;
+
+        super._mint(to, tokenId, amount);
+    }
+
     // manager-only functions
 
-    function setMinPostScore(uint24 _minPostScore) public onlyRole(MANAGER_ROLE) {
-        minPostScore = _minPostScore;
+    function setUserHurdle(IUserHurdle _userHurdle) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        userHurdle = _userHurdle;
     }
 
     // high score-only functions
@@ -51,15 +56,8 @@ contract ChandelierOrNot is AccessControl, ERC1155Supply  {
     // @notice <https://eips.ethereum.org/EIPS/eip-1155#metadata>
     // TODO: should the yes and no votes have different uris? 
     function post(string calldata postDirURI) public returns (uint256 postId) {
-        if (hasRole(POSTER_ROLE, msg.sender)) {
-            // all good. they have the poster role
-        } else {
-            uint24 senderScore = neynarScores.getScoreWithEvent(msg.sender);
-            if (senderScore >= minPostScore) {
-                // all good. they have a high enough score
-            } else {
-                revert("ChandelierOrNot: low post score");
-            }
+        if (!userHurdle.postAllowed(msg.sender)) {
+            revert("ChandelierOrNot: not allowed to post");
         }
 
         postId = nextPostId++;
@@ -97,8 +95,8 @@ contract ChandelierOrNot is AccessControl, ERC1155Supply  {
         uint256 noTokenId = getTokenId(postId, false);
         uint256 yesTokenId = noTokenId + 1;
 
-        yesVotes = totalSupply(yesTokenId);
-        noVotes = totalSupply(noTokenId);
+        yesVotes = totalSupply[yesTokenId];
+        noVotes = totalSupply[noTokenId];
 
         yesIsWinning = yesVotes > noVotes;
     }
@@ -107,12 +105,11 @@ contract ChandelierOrNot is AccessControl, ERC1155Supply  {
      * One is connected to the picture and your vote.
      * The other is fully fungible.
      */
-    function vote(uint256 postId, bool voteYes) public returns (uint256 tokenId, uint256 amount) {
-        uint24 senderScore = neynarScores.getScoreWithEvent(msg.sender);
-
-        if (senderScore == 0) {
-            // give everyone at least one token
-            ++senderScore;
+    function vote(uint256 postId, bool voteYes) public returns (uint256 tokenId, uint256 mintTokenAmount) {
+        if (userHurdle.voteTokenAllowed(msg.sender)) {
+            mintTokenAmount = 1e6;
+        } else {
+            mintTokenAmount = 0;
         }
 
         // make sure the user hasn't already voted for this post
@@ -121,13 +118,13 @@ contract ChandelierOrNot is AccessControl, ERC1155Supply  {
 
         tokenId = getTokenId(postId, voteYes);
 
-        amount = uint256(senderScore);
+        // mint the image token
+        _mint(msg.sender, tokenId, 1);
 
-        // mint the ERC1155 token
-        _mint(msg.sender, tokenId, amount, "");
-
-        // also mint the ERC20 token
-        token.mint(msg.sender, amount);
+        if (mintTokenAmount > 0) {
+            // mint the fungible token
+            token.mint(msg.sender, mintTokenAmount);
+        }
     }
 
     // @notice swap `amount` of your vote tokens to the other side
@@ -137,21 +134,43 @@ contract ChandelierOrNot is AccessControl, ERC1155Supply  {
 
         oppositeTokenId = getOppositeTokenId(tokenId);
 
-        _mint(msg.sender, oppositeTokenId, amount, "");
+        _mint(msg.sender, oppositeTokenId, amount);
     }
 
     // public functions
 
+    /// @dev Returns the name for token `id`.
+    function name(uint256 tokenId) public pure override returns (string memory) {
+        (uint256 postId, bool votedYes) = getPost(tokenId);
+
+        if (votedYes) {
+            return string(abi.encodePacked("Chandelier #", postId.toString()));
+        } else {
+            return string(abi.encodePacked("Not a Chandelier #{id}", postId.toString()));
+        }
+    }
+
+    /// @dev Returns the symbol for token `id`.
+    function symbol(uint256 tokenId) public pure override returns (string memory) {
+        (uint256 postId, bool votedYes) = getPost(tokenId);
+
+        if (votedYes) {
+            return string(abi.encodePacked("CNOT-Y#", postId.toString()));
+        } else {
+            return string(abi.encodePacked("CNOT-N#", postId.toString()));
+        }
+    }
+
     function supportsInterface(bytes4 interfaceId) 
         public 
         view 
-        override(AccessControl, ERC1155) 
+        override(AccessControl, ERC6909) 
         returns (bool) 
     {
-        return ERC1155.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
+        return ERC6909.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
 
-    function uri(uint256 tokenId) public view override returns (string memory) {
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
         (uint256 postId, bool votedYes) = getPost(tokenId);
 
         require(postId < nextPostId, "ChandelierOrNot: invalid post id");
