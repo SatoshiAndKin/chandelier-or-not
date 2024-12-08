@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import {Base64} from "@solady/utils/Base64.sol";
 import {ERC6909} from "@solady/tokens/ERC6909.sol";
 import {LibBitmap} from "@solady/utils/LibBitmap.sol";
 import {LibString} from "@solady/utils/LibString.sol";
@@ -13,6 +14,7 @@ import {IUserHurdle} from "./IUserHurdle.sol";
 // TODO: bitmap for voted? we need a bitmap inside of a mapping though
 contract ChandelierOrNot is Ownable, ERC6909  {
     using LibBitmap for LibBitmap.Bitmap;
+    using LibString for uint8;
     using LibString for uint96;
     using SafeCastLib for uint256;
 
@@ -23,7 +25,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
     // private state variables
     LibBitmap.Bitmap private _voted;
-    mapping(uint256 postId => string) private _postURIs;
+    mapping(uint256 postId => string) private _imageURIs;
 
     // our fungible token
     ChandelierOrNotToken immutable public token;
@@ -68,17 +70,17 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
     // user hurdle functions
 
-    // @notice The metadata_uri MUST point to a JSON file that conforms to the "ERC-1155 Metadata URI JSON Schema".
-    // @notice <https://eips.ethereum.org/EIPS/eip-1155#metadata>
-    // TODO: should the yes and no votes have different uris? 
-    function post(string calldata postDirURI) public returns (uint96 postId) {
+    /// @notice The metadata_uri MUST point to a JSON file that conforms to the "ERC-1155 Metadata URI JSON Schema".
+    /// @notice <https://eips.ethereum.org/EIPS/eip-1155#metadata>
+    /// todo: should the yes and no votes have different images? 
+    function post(string calldata imageURI) public returns (uint96 postId) {
         if (address(userHurdle) != address(0) && !userHurdle.postAllowed(msg.sender)) {
             revert("ChandelierOrNot: not allowed to post");
         }
 
         postId = nextPostId++;
 
-        _postURIs[postId] = postDirURI;
+        _imageURIs[postId] = imageURI;
 
         emit NewPost(msg.sender, postId);
     }
@@ -178,18 +180,27 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     }
 
     /// @dev Returns the uri for `tokenId`.
-    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+   function tokenURI(uint256 tokenId) public view override returns (string memory) {
         (uint96 postId, bool votedYes) = getPost(tokenId);
 
         require(postId < nextPostId, "ChandelierOrNot: invalid post id");
 
-        string memory postURI = _postURIs[postId];
+        bytes memory dataURI = abi.encodePacked(
+            '{',
+                '"name":"', name(tokenId), '",',
+                '"symbol":"', symbol(tokenId), '",',
+                '"decimals":"', decimals(tokenId).toString(), '",',
+                '"image":"', _imageURIs[postId], '",',
+                '"votedYes":', votedYes ? "true" : "false",
+            '}'
+        );
 
-        if (votedYes) {
-            return string.concat(postURI, "/yes.json");
-        } else {
-            return string.concat(postURI, "/no.json");
-        }
+        return string(
+            abi.encodePacked(
+                "data:application/json;base64,",
+                Base64.encode(dataURI)
+            )
+        );
     }
 
     // external functions

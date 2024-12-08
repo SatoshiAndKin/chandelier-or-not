@@ -63,7 +63,7 @@ contract ChandelierOrNotTest is Test {
 
     function test_AdminPost() public {
         vm.startPrank(owner);
-        uint256 postId = nft.post("https://example.com/post0");
+        uint256 postId = nft.post("https://example.com/post0.png");
         assertEq(postId, 0);
         assertEq(nft.nextPostId(), 1);
     }
@@ -82,7 +82,7 @@ contract ChandelierOrNotTest is Test {
 
     function test_TheNormalFlow() public {
         vm.startPrank(owner);
-        uint96 postId = nft.post("https://example.com/post0");
+        uint96 postId = nft.post("https://example.com/post0.png");
         assertEq(postId, 0);
         assertEq(nft.nextPostId(), 1);
 
@@ -94,8 +94,8 @@ contract ChandelierOrNotTest is Test {
 
         uint256 noTokenId = nft.getOppositeTokenId(yesTokenId);
 
-        assertEq(nft.tokenURI(yesTokenId), "https://example.com/post0/yes.json");
-        assertEq(nft.tokenURI(noTokenId), "https://example.com/post0/no.json");
+        assertEq(nft.tokenURI(yesTokenId), "data:application/json;base64,eyJuYW1lIjoiQ2hhbmRlbGllciAjMCIsInN5bWJvbCI6IkNOT1QtWTAiLCJkZWNpbWFscyI6IjAiLCJpbWFnZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vcG9zdDAucG5nIiwidm90ZWRZZXMiOnRydWV9");
+        assertEq(nft.tokenURI(noTokenId), "data:application/json;base64,eyJuYW1lIjoiTm90IGEgQ2hhbmRlbGllciAjMCIsInN5bWJvbCI6IkNOT1QtTjAiLCJkZWNpbWFscyI6IjAiLCJpbWFnZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vcG9zdDAucG5nIiwidm90ZWRZZXMiOmZhbHNlfQ==");
 
         assertEq(yesTokenId, 1, "unexpected yesTokenId");
         assertEq(yesAmount, 1 ether, "unexpected yesAmount");
@@ -119,6 +119,6 @@ contract ChandelierOrNotTest is Test {
     function test_AnonUserPost() public {
         vm.prank(address(420));
         vm.expectRevert("ChandelierOrNot: not allowed to post");
-        nft.post("https://example.com/post1");
+        nft.post("https://example.com/post1.png");
     }
 }
