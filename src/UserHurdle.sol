@@ -20,13 +20,13 @@ contract UserHurdle is OwnableRoles, IUserHurdle {
     // @notice if this user can post a new image
     // TODO: eventually this will be opened up to anyone with a verified account
     function postAllowed(address who) public view returns (bool) {
-        return hasAnyRole(who, POSTER_ROLE);
+        return who == owner() || hasAnyRole(who, POSTER_ROLE);
     }
 
     // @notice if this user receives tokens when they vote
     function voteTokenAllowed(address who) public returns (bool) {
         // TODO: what else can we block on?
         // TODO: simple token balance isn't great. needs to be staked for time or count the average balance over the last month or something
-        return verifications.getFidWithEvent(who) != 0;
+        return verifications.getFidWithEvent(who) != 0 || who == owner() || hasAnyRole(who, POSTER_ROLE);
     }
 }

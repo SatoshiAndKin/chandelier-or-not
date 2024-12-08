@@ -30,19 +30,25 @@ contract ChandelierOrNotTest is Test {
         token = nft.token();
     }
 
+    function test_Verifications() public {
+        assertEq(verifications.getFidWithEvent(0x2699C32A793D58691419A054DA69414dF186b181), 3253, "unexpected fid with event");
+    }
+
     function test_TokenMetadata() public view {
-        assertEq(token.name(), "ChandelierOrNotToken", "unexpected token name");
+        assertEq(token.name(), "Chandelier or Not Votes", "unexpected token name");
         assertEq(token.symbol(), "CNOT", "unexpected token symbol");
-        assertEq(token.decimals(), 6, "unexpected token decimals");
+        assertEq(token.decimals(), 18, "unexpected token decimals");
     }
 
     function test_AdminPost() public {
+        vm.startPrank(owner);
         uint256 postId = nft.post("https://example.com/post0");
         assertEq(postId, 0);
         assertEq(nft.nextPostId(), 1);
     }
 
     function test_TheNormalFlow() public {
+        vm.startPrank(owner);
         uint256 postId = nft.post("https://example.com/post0");
         assertEq(postId, 0);
         assertEq(nft.nextPostId(), 1);
@@ -56,26 +62,25 @@ contract ChandelierOrNotTest is Test {
         uint256 noTokenId = nft.getOppositeTokenId(yesTokenId);
 
         assertEq(yesTokenId, 1, "unexpected yesTokenId");
-        assertEq(yesAmount, 1e6, "unexpected yesAmount");
-        assertEq(nft.balanceOf(flashprofits, yesTokenId), yesAmount, "unexpected balance of yesTokenId");
+        assertEq(yesAmount, 1 ether, "unexpected yesAmount");
+        assertEq(nft.balanceOf(flashprofits, yesTokenId), 1, "unexpected balance of yesTokenId");
         assertEq(nft.balanceOf(flashprofits, noTokenId), 0, "unexpected balance of noTokenId");
         assertEq(token.balanceOf(flashprofits), yesAmount, "unexpected balance of token");
 
         vm.expectRevert("ChandelierOrNot: already voted");
         nft.vote(postId, false);
 
-        uint256 oppositeTokenId = nft.changeVote(yesTokenId, yesAmount);
+        uint256 oppositeTokenId = nft.changeVote(yesTokenId, 1);
         assertEq(oppositeTokenId, noTokenId);
 
         assertEq(nft.balanceOf(flashprofits, yesTokenId), 0, "unexpected balance of yesTokenId after vote change");
-        assertEq(nft.balanceOf(flashprofits, noTokenId), yesAmount, "unexpected balance of noTokenId after vote change");
+        assertEq(nft.balanceOf(flashprofits, noTokenId), 1, "unexpected balance of noTokenId after vote change");
         assertEq(token.balanceOf(flashprofits), yesAmount, "unexpected balance of token after vote change");
     }
 
     function test_AnonUserPost() public {
         vm.prank(address(420));
-
-        vm.expectRevert("ChandelierOrNot: low post score");
+        vm.expectRevert("ChandelierOrNot: not allowed to post");
         nft.post("https://example.com/post1");
     }
 }
