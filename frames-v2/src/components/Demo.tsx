@@ -24,6 +24,13 @@ export default function Demo(
   const [txHash, setTxHash] = useState<string | null>(null);
   const [postId, setPostId] = useState(0);
 
+  // TODO: is a ton of state the right thing here? these all get loaded from a single query
+  // TODO: this needs to refresh every few minutes as new blocks arrive. probably better to poll every minute/have a refresh button than to subscribe
+  const [yesBalance, setYesBalance] = useState<string | number>("?");
+  const [noBalance, setNoBalance] = useState<string | number>("?");
+  const [totalYes, setTotalYes] = useState<string | number>("?");
+  const [totalNo, setTotalNo] = useState<string | number>("?");
+
   const { address, isConnected } = useAccount();
   const {
     sendTransaction,
@@ -120,10 +127,10 @@ export default function Demo(
 
         <div className="mb-4">
           <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            Your Yes Balance: ? (of ? total)
+            Your Yes Balance: {yesBalance} (of {totalYes} total)
           </div>
           <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            Your No Balance: ? (of ? total)
+            Your No Balance: {noBalance} (of {totalNo} total)
           </div>
         </div>
 
