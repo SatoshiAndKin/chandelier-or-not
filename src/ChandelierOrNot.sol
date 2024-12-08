@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {AccessControl} from "@openzeppelin/access/AccessControl.sol";
 import {ERC6909} from "@solady/tokens/ERC6909.sol";
 import {LibString} from "@solady/utils/LibString.sol";
+import {Ownable} from "@solady/auth/Ownable.sol";
 
 import {ChandelierOrNotToken} from "./ChandelierOrNotToken.sol";
 import {IUserHurdle} from "./IUserHurdle.sol";
@@ -12,9 +12,8 @@ import {IUserHurdle} from "./IUserHurdle.sol";
 // TODO: bitmap for voted? we need a bitmap inside of a mapping though
 // TODO: gate mints on a score OR on having a token balance
 // TODO: allow changing your vote. need to use the new score properly
-// TODO: ERC6909 instead of 1155
 
-contract ChandelierOrNot is AccessControl, ERC6909  {
+contract ChandelierOrNot is Ownable, ERC6909  {
     using LibString for uint256;
 
     IUserHurdle public userHurdle;
@@ -28,10 +27,10 @@ contract ChandelierOrNot is AccessControl, ERC6909  {
 
     event NewPost(address indexed poster, uint256 postId);
 
-    constructor(IUserHurdle _userHurdle) ERC6909() {
+    constructor(address _owner, IUserHurdle _userHurdle) ERC6909() {
         userHurdle = _userHurdle;
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _initializeOwner(_owner);
 
         token = new ChandelierOrNotToken();
     }
@@ -44,9 +43,9 @@ contract ChandelierOrNot is AccessControl, ERC6909  {
         super._mint(to, tokenId, amount);
     }
 
-    // manager-only functions
+    // owner-only functions
 
-    function setUserHurdle(IUserHurdle _userHurdle) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setUserHurdle(IUserHurdle _userHurdle) public onlyOwner {
         userHurdle = _userHurdle;
     }
 
@@ -56,7 +55,7 @@ contract ChandelierOrNot is AccessControl, ERC6909  {
     // @notice <https://eips.ethereum.org/EIPS/eip-1155#metadata>
     // TODO: should the yes and no votes have different uris? 
     function post(string calldata postDirURI) public returns (uint256 postId) {
-        if (!userHurdle.postAllowed(msg.sender)) {
+        if (address(userHurdle) != address(0) && !userHurdle.postAllowed(msg.sender)) {
             revert("ChandelierOrNot: not allowed to post");
         }
 
@@ -106,12 +105,6 @@ contract ChandelierOrNot is AccessControl, ERC6909  {
      * The other is fully fungible.
      */
     function vote(uint256 postId, bool voteYes) public returns (uint256 tokenId, uint256 mintTokenAmount) {
-        if (userHurdle.voteTokenAllowed(msg.sender)) {
-            mintTokenAmount = 1e6;
-        } else {
-            mintTokenAmount = 0;
-        }
-
         // make sure the user hasn't already voted for this post
         require(!voted[msg.sender][postId], "ChandelierOrNot: already voted");
         voted[msg.sender][postId] = true;
@@ -121,8 +114,9 @@ contract ChandelierOrNot is AccessControl, ERC6909  {
         // mint the image token
         _mint(msg.sender, tokenId, 1);
 
-        if (mintTokenAmount > 0) {
-            // mint the fungible token
+        // maybe mint the fungible token
+        // TODO: if user hurdle is not set, should we always mint or never mint?
+        if (address(userHurdle) != address(0) || userHurdle.voteTokenAllowed(msg.sender)) {
             token.mint(msg.sender, mintTokenAmount);
         }
     }
@@ -159,15 +153,6 @@ contract ChandelierOrNot is AccessControl, ERC6909  {
         } else {
             return string(abi.encodePacked("CNOT-N#", postId.toString()));
         }
-    }
-
-    function supportsInterface(bytes4 interfaceId) 
-        public 
-        view 
-        override(AccessControl, ERC6909) 
-        returns (bool) 
-    {
-        return ERC6909.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {

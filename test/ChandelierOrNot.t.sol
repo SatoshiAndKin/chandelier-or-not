@@ -8,6 +8,7 @@ import {IUserHurdle, UserHurdle} from "../src/UserHurdle.sol";
 
 contract ChandelierOrNotTest is Test {
     uint256 baseFork;
+    address owner;
 
     UserHurdle public userHurdle;
     ChandelierOrNot public nft;
@@ -20,9 +21,11 @@ contract ChandelierOrNotTest is Test {
 
         verifications = INeynarVerificationsReader(vm.envAddress("NN_VERIFICATIONS_ADDRESS"));
 
-        userHurdle = new UserHurdle(verifications);
+        owner = makeAddr("owner");
 
-        nft = new ChandelierOrNot(IUserHurdle(userHurdle));
+        userHurdle = new UserHurdle(owner, verifications);
+
+        nft = new ChandelierOrNot(owner, IUserHurdle(userHurdle));
 
         token = nft.token();
     }
