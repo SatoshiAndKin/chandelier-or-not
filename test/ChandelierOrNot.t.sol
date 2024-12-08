@@ -2,11 +2,13 @@
 pragma solidity ^0.8.28;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ChandelierOrNot, ChandelierOrNotToken} from "../src/ChandelierOrNot.sol";
+import {ChandelierOrNot, ChandelierOrNotToken, LibString} from "../src/ChandelierOrNot.sol";
 import {INeynarVerificationsReader} from "../src/INeynarVerificationsReader.sol";
 import {IUserHurdle, UserHurdle} from "../src/UserHurdle.sol";
 
 contract ChandelierOrNotTest is Test {
+    using LibString for uint256;
+
     uint256 baseFork;
     address owner;
 
@@ -47,6 +49,18 @@ contract ChandelierOrNotTest is Test {
         assertEq(nft.nextPostId(), 1);
     }
 
+    function test_packVotedKey() public {
+        address user = 0x2699C32A793D58691419A054DA69414dF186b181;
+
+        uint256 minVotedKey = nft.packVotedKey(user, 0);
+        console.log("minVotedKey:", minVotedKey);
+        assertEq(minVotedKey, 0x2699c32a793d58691419a054da69414df186b181000000000000000000000000);
+
+        uint256 maxVotedKey = nft.packVotedKey(user, type(uint96).max);
+        console.log("maxVotedKey:", maxVotedKey);
+        assertEq(maxVotedKey, 0x2699c32a793d58691419a054da69414df186b181FFFFFFFFFFFFFFFFFFFFFFFF);
+    }
+
     function test_TheNormalFlow() public {
         vm.startPrank(owner);
         uint96 postId = nft.post("https://example.com/post0");
@@ -66,6 +80,11 @@ contract ChandelierOrNotTest is Test {
         assertEq(nft.balanceOf(flashprofits, yesTokenId), 1, "unexpected balance of yesTokenId");
         assertEq(nft.balanceOf(flashprofits, noTokenId), 0, "unexpected balance of noTokenId");
         assertEq(token.balanceOf(flashprofits), yesAmount, "unexpected balance of token");
+
+        uint256 votedKey = nft.packVotedKey(flashprofits, postId);
+        console.log("votedKey:", votedKey);
+
+        assertEq(nft.hasVoted(flashprofits, postId), true, "unexpected hasVoted");
 
         vm.expectRevert(ChandelierOrNot.AlreadyVoted.selector);
         nft.vote(postId, false);

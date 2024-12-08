@@ -16,19 +16,22 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     using LibString for uint96;
     using SafeCastLib for uint256;
 
+    // public state variables
     IUserHurdle public userHurdle;
     uint96 public nextPostId;
-
     mapping(uint256 tokenId => uint256) public totalSupply;
+
+    // private state variables
+    LibBitmap.Bitmap private _voted;
+    mapping(uint256 postId => string) private _postURIs;
 
     // our fungible token
     ChandelierOrNotToken immutable public token;
 
-    LibBitmap.Bitmap private _voted;
-    mapping(uint256 postId => string) private _postURIs;
-
+    // events
     event NewPost(address indexed poster, uint256 postId);
 
+    // errors
     error AlreadyVoted();
 
     constructor(address _owner, IUserHurdle _userHurdle) ERC6909() {
@@ -40,10 +43,6 @@ contract ChandelierOrNot is Ownable, ERC6909  {
     }
 
     // internal functions
-
-    function _packVotedKey(address who, uint96 postId) internal pure returns (uint256 x) {
-        x = uint256(uint160(who)) << 96 | postId;
-    }
 
     function _mint(address to, uint256 tokenId, uint256 amount) internal override {
         totalSupply[tokenId] += amount;
@@ -114,7 +113,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
      */
     function vote(uint96 postId, bool voteYes) public returns (uint256 tokenId, uint256 mintTokenAmount) {
         // make sure the user hasn't already voted for this post
-        uint256 votedKey = _packVotedKey(msg.sender, postId);
+        uint256 votedKey = packVotedKey(msg.sender, postId);
 
         require(!_voted.get(votedKey), AlreadyVoted());
         _voted.set(votedKey);
@@ -144,6 +143,10 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
     // public functions
 
+    function hasVoted(address who, uint96 postId) public view returns (bool) {
+        return _voted.get(packVotedKey(who, postId));
+    }
+
     /// @dev Returns the name for token `id`.
     function name(uint256 tokenId) public pure override returns (string memory) {
         (uint96 postId, bool votedYes) = getPost(tokenId);
@@ -153,6 +156,10 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         } else {
             return string(abi.encodePacked("Not a Chandelier #", postId.toString()));
         }
+    }
+
+    function packVotedKey(address who, uint96 postId) public pure returns (uint256 x) {
+        x = uint256(uint160(who)) << 96 | uint256(postId);
     }
 
     /// @dev Returns the symbol for token `id`.
