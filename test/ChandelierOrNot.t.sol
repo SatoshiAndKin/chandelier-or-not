@@ -6,6 +6,15 @@ import {ChandelierOrNot, ChandelierOrNotToken, LibString} from "../src/Chandelie
 import {INeynarVerificationsReader} from "../src/INeynarVerificationsReader.sol";
 import {IUserHurdle, UserHurdle} from "../src/UserHurdle.sol";
 
+contract TestChandelierOrNot is ChandelierOrNot {
+    constructor(address _owner, IUserHurdle _userHurdle) ChandelierOrNot(_owner, _userHurdle) {}
+
+    // TODO: whats the best way to test an internal function?
+    function packVotedKey(address who, uint96 postId) external pure returns (uint256) {
+        return _packVotedKey(who, postId);
+    }
+}
+
 contract ChandelierOrNotTest is Test {
     using LibString for uint256;
 
@@ -13,7 +22,7 @@ contract ChandelierOrNotTest is Test {
     address owner;
 
     UserHurdle public userHurdle;
-    ChandelierOrNot public nft;
+    TestChandelierOrNot public nft;
     ChandelierOrNotToken public token;
     INeynarVerificationsReader public verifications;
 
@@ -27,7 +36,7 @@ contract ChandelierOrNotTest is Test {
 
         userHurdle = new UserHurdle(owner, verifications);
 
-        nft = new ChandelierOrNot(owner, IUserHurdle(userHurdle));
+        nft = new TestChandelierOrNot(owner, IUserHurdle(userHurdle));
 
         token = nft.token();
     }

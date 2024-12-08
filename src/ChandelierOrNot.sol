@@ -115,7 +115,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
     // public functions
 
-    // @notice swap `amount` of your vote tokens to the other side
+    /// @dev swap `amount` of your vote tokens to the other side.
     function changeVote(uint256 tokenId, uint256 amount) public returns (uint256 oppositeTokenId) {
         // this will revert if the sender doesn't have enough tokens
         _burn(msg.sender, tokenId, amount);
@@ -125,32 +125,37 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         _mint(msg.sender, oppositeTokenId, amount);
     }
 
+    /// @dev Returns the post and vote for a given `tokenId`.
     function getPost(uint256 tokenId) public pure returns (uint96 postId, bool yesVote) {
         postId = (tokenId / 2).toUint96();
         yesVote = tokenId % 2 == 1;
     }
 
-    function getTokenId(uint96 postId, bool yesVote) public pure returns (uint256 x) {
-        x = postId * 2 + (yesVote ? 1 : 0);
+    /// @dev Returns the token `id` for a given post and vote.
+    function getTokenId(uint96 postId, bool yesVote) public pure returns (uint256 tokenId) {
+        tokenId = postId * 2 + (yesVote ? 1 : 0);
     }
 
-    function getOppositeTokenId(uint256 tokenId) public pure returns (uint256 x) {
+    /// @dev Returns the yes/no tokenId for the no/yes `tokenId`'s post.
+    function getOppositeTokenId(uint256 tokenId) public pure returns (uint256 oppositeTokenId) {
         if (tokenId % 2 == 0) {
-            x = tokenId + 1;
+            oppositeTokenId = tokenId + 1;
         } else {
-            x = tokenId - 1;
+            oppositeTokenId = tokenId - 1;
         }
     }
 
-    function decimals(uint256 /*id*/) public pure override returns (uint8) {
+    /// @dev This NFT contract does not have any decimals.
+    function decimals(uint256 /*tokenId*/) public pure override returns (uint8) {
         return 0;
     }
 
+    /// @dev Returns if a user has voted on a post.
     function hasVoted(address who, uint96 postId) public view returns (bool) {
         return _voted.get(_packVotedKey(who, postId));
     }
 
-    /// @dev Returns the name for token `id`.
+    /// @dev Returns the name for token `tokenId`.
     function name(uint256 tokenId) public pure override returns (string memory) {
         (uint96 postId, bool votedYes) = getPost(tokenId);
 
@@ -161,7 +166,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         }
     }
 
-    /// @dev Returns the symbol for token `id`.
+    /// @dev Returns the symbol for token `tokenId`.
     function symbol(uint256 tokenId) public pure override returns (string memory) {
         (uint96 postId, bool votedYes) = getPost(tokenId);
 
@@ -172,6 +177,7 @@ contract ChandelierOrNot is Ownable, ERC6909  {
         }
     }
 
+    /// @dev Returns the uri for `tokenId`.
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         (uint96 postId, bool votedYes) = getPost(tokenId);
 
@@ -188,11 +194,8 @@ contract ChandelierOrNot is Ownable, ERC6909  {
 
     // external functions
 
-    function packVotedKey(address who, uint96 postId) external pure returns (uint256) {
-        return _packVotedKey(who, postId);
-    }
-
-    // @dev ties go to No
+    /// @dev Returns if a post has more yes or no votes. Ties go to No.
+    /// @dev This is very simple. Smarter things can be done off-chain.
     function winner(uint96 postId) external view returns (bool yesIsWinning, uint256 yesVotes, uint256 noVotes) {
         // this could be gas golfed, but i want readability
         uint256 noTokenId = getTokenId(postId, false);
