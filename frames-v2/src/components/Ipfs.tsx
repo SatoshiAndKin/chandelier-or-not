@@ -3,7 +3,7 @@ import { useState, useEffect, createContext } from 'react'
 
 // TODO: i think I need an IpfsContext here in order to use "helia" in the app
 
-export const IpfsComponent = () => {
+export const Ipfs = () => {
   const [id, setId] = useState<string | null>(null)
   const [helia, setHelia] = useState<HeliaLibp2p | null>(null)
   const [isOnline, setIsOnline] = useState(false)

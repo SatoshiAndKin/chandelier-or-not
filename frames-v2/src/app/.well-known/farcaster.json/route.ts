@@ -11,11 +11,12 @@ export async function GET() {
     },
     frame: {
       version: "0.0.0",
-      name: "Chandelier or Not?",
+      name: "Frames v2 Demo",
       iconUrl: `${appUrl}/icon.png`,
       splashImageUrl: `${appUrl}/splash.png`,
       splashBackgroundColor: "#f7f7f7",
       homeUrl: appUrl,
+      webhookUrl: `${appUrl}/api/webhook`,
     },
   };
 

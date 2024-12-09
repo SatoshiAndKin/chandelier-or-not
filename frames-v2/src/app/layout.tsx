@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import React from "react";
 
 import "~/app/globals.css";
 import { Providers } from "~/app/providers";
 
 export const metadata: Metadata = {
-  title: "Chandelier or Not?",
+  title: "Farcaster Frames v2 Demo",
   description: "A Farcaster Frames v2 demo app",
 };
 
@@ -17,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <React.StrictMode><Providers>{children}</Providers></React.StrictMode>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

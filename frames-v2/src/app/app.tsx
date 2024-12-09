@@ -2,12 +2,10 @@
 
 import dynamic from "next/dynamic";
 
-const Demo = dynamic(() => import("~/components/Demo"), {
+const ChandelierOrNot = dynamic(() => import("~/components/ChandelierOrNot"), {
   ssr: false,
 });
 
-export default function App(
-  { title }: { title?: string } = { title: "Chandelier or Not?" }
-) {
-  return <Demo title={title} />;
+export default function App() {
+  return <ChandelierOrNot />;
 }

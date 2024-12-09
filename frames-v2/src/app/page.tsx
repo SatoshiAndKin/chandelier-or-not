@@ -1,4 +1,3 @@
-import React from 'react';
 import { Metadata } from "next";
 import App from "./app";
 
@@ -11,7 +10,7 @@ const frame = {
     title: "Launch Frame",
     action: {
       type: "launch_frame",
-      name: "Chandelier or Not?",
+      name: "Farcaster Frames v2 Demo",
       url: appUrl,
       splashImageUrl: `${appUrl}/splash.png`,
       splashBackgroundColor: "#f7f7f7",
@@ -22,12 +21,10 @@ const frame = {
 export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
-  // TODO: check the http params for a specific post id. Use a splash image related to the post.
-
   return {
-    title: "Chandelier or Not?",
+    title: "Farcaster Frames v2 Demo",
     openGraph: {
-      title: "Chandelier or Not?",
+      title: "Farcaster Frames v2 Demo",
       description: "A Farcaster Frames v2 demo app.",
     },
     other: {
