@@ -21,7 +21,7 @@ export function frameConnector() {
     async setup() {
       this.connect({ chainId: config.chains[0].id });
     },
-    async connect({ chainId } = {}) {
+    async connect({ chainId, withCapabilities } = {}) {
       const provider = await this.getProvider();
       const accounts = await provider.request({
         method: "eth_requestAccounts",
@@ -50,7 +50,9 @@ export function frameConnector() {
       connected = true;
 
       return {
-        accounts: accounts.map((x) => getAddress(x)),
+        accounts: (withCapabilities
+          ? accounts.map((address) => ({ address: getAddress(address), capabilities: {} }))
+          : accounts.map((address) => getAddress(address))) as never,
         chainId: currentChainId,
       };
     },
