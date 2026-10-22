@@ -26,9 +26,9 @@ import { truncateAddress } from "~/lib/truncateAddress";
 import { base, optimism } from "wagmi/chains";
 import { BaseError, UserRejectedRequestError } from "viem";
 
-export default function ChandelierOrNot() {
-  const title = "Chandelier or Not?";
-
+export default function ChandelierOrNot({
+  title = "Chandelier or Not?",
+}: { title?: string }) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [frameContext, setFrameContext] = useState<FrameContext>();
   const [isContextOpen, setIsContextOpen] = useState(false);

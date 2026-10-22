@@ -6,6 +6,6 @@ const ChandelierOrNot = dynamic(() => import("~/components/ChandelierOrNot"), {
   ssr: false,
 });
 
-export default function App() {
-  return <ChandelierOrNot />;
+export default function App({ title }: { title?: string }) {
+  return <ChandelierOrNot title={title} />;
 }
