@@ -152,7 +152,14 @@ contract ChandelierOrNot is Ownable, ERC6909 {
     }
 
     /// @dev This NFT contract does not have any decimals.
-    function decimals(uint256 /*tokenId*/ ) public pure override returns (uint8) {
+    function decimals(
+        uint256 /*tokenId*/
+    )
+        public
+        pure
+        override
+        returns (uint8)
+    {
         return 0;
     }
 
