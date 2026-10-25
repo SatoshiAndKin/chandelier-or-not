@@ -2,44 +2,63 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'script/**'
+      - 'lib/**'
+      - 'frames-v2/**'
+      - 'foundry.toml'
+      - 'remappings.txt'
+      - '.gitmodules'
+      - '.github/workflows/test.yml'
   workflow_dispatch:
 
-env:
-  FOUNDRY_PROFILE: ci
+permissions:
+  contents: read
 
 jobs:
   check:
-    strategy:
-      fail-fast: true
-
     name: Foundry project
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FOUNDRY_PROFILE: ci
+      BASE_RPC_URL: https://mainnet.base.org
+      # https://docs.neynar.com/docs/verifications-contract
+      NN_VERIFICATIONS_ADDRESS: '0xdB1eCF22d195dF9e03688C33707b19C68BdEd142'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+      - uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1
         with:
-          version: nightly
+          version: v1.8.4
+      - run: forge fmt --check
+      - run: forge build --sizes
+      - run: forge test -vvv
 
-      - name: Show Forge version
-        run: |
-          forge --version
-
-      - name: Run Forge fmt
-        run: |
-          forge fmt --check
-        id: fmt
-
-      - name: Run Forge build
-        run: |
-          forge build --sizes
-        id: build
-
-      - name: Run Forge tests
-        run: |
-          forge test -vvv
-        id: test
+  frontend:
+    name: Frontend lint, types and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NODE_OPTIONS: --max-old-space-size=1024
+    defaults:
+      run:
+        working-directory: frames-v2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: frames-v2/.nvmrc
+          cache: yarn
+          cache-dependency-path: frames-v2/yarn.lock
+      - run: corepack enable && corepack prepare yarn@1.22.22 --activate
+      - run: yarn install --frozen-lockfile --ignore-scripts
+      - run: yarn lint
+      - run: yarn tsc --noEmit
+      - run: yarn build

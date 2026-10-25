@@ -76,7 +76,7 @@ contract StakedToken is ERC20 {
         // TODO: only do if a certain amount of time has passed since the last time this was run
         // TODO: only do this if the vault share price has changed
         try this.forwardEarnings() {}
-        catch {
+            catch {
             // do nothing
         }
     }
