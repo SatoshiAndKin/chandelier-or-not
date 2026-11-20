@@ -3677,7 +3677,14 @@
     "@walletconnect/window-getters" "^1.0.1"
     tslib "1.14.1"
 
-"@x402/core@^2.25.0", "@x402/core@~2.28.0":
+"@x402/core@^2.25.0", "@x402/core@~2.31.0":
+  version "2.31.0"
+  resolved "https://registry.yarnpkg.com/@x402/core/-/core-2.31.0.tgz#c2e5acb9c7952608babe781fe09482c85fc5e4ab"
+  integrity sha512-7ToCOwHfftfFEERW5Mp6Fc5U1+JrtCLTkbQnEVsBl13IutltP9lWIBYi/J+zy8vQWaLUmACq8A2qywzdt/RRIQ==
+  dependencies:
+    zod "^4.6.6"
+
+"@x402/core@~2.28.0":
   version "2.28.0"
   resolved "https://registry.yarnpkg.com/@x402/core/-/core-2.28.0.tgz#22ed0e4e49fdd3dda30b0d6a93289b647f46b533"
   integrity sha512-Da/7zKxCKqpBoB4Msc9tFgkAv7tJTD8nG+DSSm+QdXAyJS4PQsmgVSKe17rDJTtlu0pwNbLcOje6MyQ6kaDkig==
@@ -3693,20 +3700,20 @@
     viem "^2.48.11"
     zod "^3.24.2"
 
-"@x402/extensions@^2.25.0":
-  version "2.28.0"
-  resolved "https://registry.yarnpkg.com/@x402/extensions/-/extensions-2.28.0.tgz#8edccc96520e801acab831529b88a37c02c2771e"
-  integrity sha512-M3SVxO8DJnx7gpok/ODQp803jr21s1XrCMholNw0hSgOVvSPRksfTZ+CUNfJwteNaHmaAxGjPelXWBhTCMD9oQ==
+"@x402/extensions@^2.31.0":
+  version "2.31.0"
+  resolved "https://registry.yarnpkg.com/@x402/extensions/-/extensions-2.31.0.tgz#f70475ecccfc484bf6a400956686a71855ac6728"
+  integrity sha512-hFq11UtXNWPirZSZjZuWFHvjetYvFQmkQSZcNEMaQYxOz70ZLNFmIdXfG2J/B8YGE2nS2d223Hz9Lnkrxw+Sqw==
   dependencies:
     "@noble/curves" "^1.9.0"
     "@scure/base" "^1.2.6"
     "@signinwithethereum/siwe" "^4.1.0"
-    "@x402/core" "~2.28.0"
-    ajv "^8.17.1"
+    "@x402/core" "~2.31.0"
+    ajv "^8.18.0"
     jose "^5.9.6"
     tweetnacl "^1.0.3"
     viem "^2.48.11"
-    zod "^3.24.2"
+    zod "^4.6.6"
 
 "@x402/svm@^2.25.0":
   version "2.28.0"
@@ -3795,7 +3802,7 @@ ajv@^6.12.4:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
-ajv@^8.17.1:
+ajv@^8.18.0:
   version "8.20.0"
   resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.20.0.tgz#304b3636add88ba7d936760dd50ece006dea95f9"
   integrity sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==
@@ -8901,7 +8908,7 @@ zod@^3.23.8, zod@^3.24.2, zod@^3.25.76:
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
   integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
 
-zod@^4.1.5:
+zod@^4.1.5, zod@^4.6.6:
   version "4.6.7"
   resolved "https://registry.yarnpkg.com/zod/-/zod-4.6.7.tgz#e806cf64a7f4e37635ce9f2f52c04c3766f75e5b"
   integrity sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==
