@@ -4,16 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    paths:
-      - 'src/**'
-      - 'test/**'
-      - 'script/**'
-      - 'lib/**'
-      - 'frames-v2/**'
-      - 'foundry.toml'
-      - 'remappings.txt'
-      - '.gitmodules'
-      - '.github/workflows/test.yml'
   workflow_dispatch:
 
 concurrency:
@@ -37,12 +27,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
-      - uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1
+      - uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1
         with:
-          version: v1.8.4
+          version: v1.10.0 # bundles Solar v0.3.0
       - run: forge fmt --check
-      - run: forge build --sizes
-      - run: forge test -vvv
+      - run: forge build --sizes --no-lint
+      - run: forge lint
+      - name: Run tests and check gas snapshots
+        run: forge snapshot --check -vvv
 
   frontend:
     name: Frontend lint, types and build
@@ -56,7 +48,7 @@ jobs:
         working-directory: frames-v2
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: frames-v2/.nvmrc
           cache: yarn

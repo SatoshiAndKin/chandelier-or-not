@@ -35,8 +35,13 @@ $ forge fmt
 
 ### Gas Snapshots
 
+Use Foundry v1.10.0 to regenerate the snapshots. It includes Solar v0.3.0 for linting; project bytecode is still compiled with solc 0.8.28.
+
+Set `BASE_RPC_URL` to a Base RPC with historical state and `NN_VERIFICATIONS_ADDRESS` to the address in the [CI workflow](.github/workflows/test.yml). The tests fork at a fixed block.
+
 ```shell
 $ forge snapshot
+$ forge snapshot --check
 ```
 
 ### Anvil
