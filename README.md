@@ -35,7 +35,7 @@ $ forge fmt
 
 ### Gas Snapshots
 
-Use Foundry v1.10.0 to regenerate the snapshots. It includes Solar v0.3.0 for linting; project bytecode is still compiled with solc 0.8.28.
+Use Foundry v1.10.0 to regenerate the snapshots. The default profile builds and tests with the pinned Solar v0.3.0 compiler and Osaka EVM target. The fixed-fork snapshot is a test baseline, not a production gas estimate.
 
 Set `BASE_RPC_URL` to a Base RPC with historical state and `NN_VERIFICATIONS_ADDRESS` to the address in the [CI workflow](.github/workflows/test.yml). The tests fork at a fixed block.
 
@@ -52,9 +52,7 @@ $ anvil
 
 ### Deploy
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+Use the development steps for local Solar/Osaka experiments. [Solar code generation is experimental](https://github.com/paradigmxyz/solar/releases/tag/v0.3.0); do not deploy its bytecode to production.
 
 ### Cast
 
@@ -78,10 +76,10 @@ First, create an `.env`
 source .env
 ```
 
-Start anvil:
+Start Anvil with the Osaka hardfork:
 
 ```shell
-anvil
+anvil --hardfork osaka
 ```
 
 Deploy to anvil:
@@ -102,12 +100,14 @@ Create a post:
 
 ### Production Deploy Steps
 
+Use the `production` profile to retain solc 0.8.28, Cancun, and the existing via-IR compilation.
+
 ```shell
 source .env
 ```
 
 ```shell
-forge script script/Deploy.s.sol:DeployScript \
+FOUNDRY_PROFILE=production forge script script/Deploy.s.sol:DeployScript \
     --broadcast \
     --verify \
     --rpc-url "$BASE_RPC_URL"

@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      FOUNDRY_PROFILE: ci
+      FOUNDRY_PROFILE: default
       BASE_RPC_URL: https://mainnet.base.org
       # https://docs.neynar.com/docs/verifications-contract
       NN_VERIFICATIONS_ADDRESS: '0xdB1eCF22d195dF9e03688C33707b19C68BdEd142'

@@ -1,11 +1,16 @@
 [profile.default]
 default_chain = "base"
-evm_version = "cancun"
+evm_version = "osaka"
 libs = ["lib"]
 out = "out"
 optimizer = true
-solc_version = "0.8.28"
+solc = "solar:0.3.0"
 src = "src"
+
+# Preserve the supported compiler and EVM target for production deployments.
+[profile.production]
+evm_version = "cancun"
+solc = "0.8.28"
 via_ir = true
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
