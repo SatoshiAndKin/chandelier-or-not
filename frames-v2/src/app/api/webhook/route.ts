@@ -1,18 +1,21 @@
 import {
+  eventFrameAddedPayloadSchema,
+  eventFrameRemovedPayloadSchema,
   eventHeaderSchema,
+  eventNotificationsEnabledPayloadSchema,
   eventSchema,
+  notificationsDisabledPayloadSchema,
 } from "@farcaster/frame-sdk";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
-// Keep the legacy Frame event shapes; the SDK's Zod 3 union typings don't
-// infer an output on Zod 4.
-const notificationDetailsSchema = z.object({ url: z.string(), token: z.string() });
+// The legacy SDK still emits Zod 3 union types, which lose inference on
+// patched Zod 4. Recompose its own variants until the SDK supplies Zod 4 types.
 const eventPayloadSchema = z.discriminatedUnion("event", [
-  z.object({ event: z.literal("frame-added"), notificationDetails: notificationDetailsSchema.optional() }),
-  z.object({ event: z.literal("frame-removed") }),
-  z.object({ event: z.literal("notifications-enabled"), notificationDetails: notificationDetailsSchema }),
-  z.object({ event: z.literal("notifications-disabled") }),
+  eventFrameAddedPayloadSchema,
+  eventFrameRemovedPayloadSchema,
+  eventNotificationsEnabledPayloadSchema,
+  notificationsDisabledPayloadSchema,
 ]);
 
 export async function POST(request: NextRequest) {
