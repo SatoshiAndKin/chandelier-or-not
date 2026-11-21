@@ -1,9 +1,19 @@
 import {
   eventHeaderSchema,
-  eventPayloadSchema,
   eventSchema,
 } from "@farcaster/frame-sdk";
 import { NextRequest } from "next/server";
+import { z } from "zod";
+
+// Keep the legacy Frame event shapes; the SDK's Zod 3 union typings don't
+// infer an output on Zod 4.
+const notificationDetailsSchema = z.object({ url: z.string(), token: z.string() });
+const eventPayloadSchema = z.discriminatedUnion("event", [
+  z.object({ event: z.literal("frame-added"), notificationDetails: notificationDetailsSchema.optional() }),
+  z.object({ event: z.literal("frame-removed") }),
+  z.object({ event: z.literal("notifications-enabled"), notificationDetails: notificationDetailsSchema }),
+  z.object({ event: z.literal("notifications-disabled") }),
+]);
 
 export async function POST(request: NextRequest) {
   const requestJson = await request.json();
@@ -12,7 +22,7 @@ export async function POST(request: NextRequest) {
 
   if (requestBody.success === false) {
     return Response.json(
-      { success: false, errors: requestBody.error.errors },
+      { success: false, errors: requestBody.error.issues },
       { status: 400 }
     );
   }
@@ -25,7 +35,7 @@ export async function POST(request: NextRequest) {
   const header = eventHeaderSchema.safeParse(headerData);
   if (header.success === false) {
     return Response.json(
-      { success: false, errors: header.error.errors },
+      { success: false, errors: header.error.issues },
       { status: 400 }
     );
   }
@@ -38,7 +48,7 @@ export async function POST(request: NextRequest) {
 
   if (payload.success === false) {
     return Response.json(
-      { success: false, errors: payload.error.errors },
+      { success: false, errors: payload.error.issues },
       { status: 400 }
     );
   }
