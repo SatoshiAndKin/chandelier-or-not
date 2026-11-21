@@ -1,9 +1,22 @@
 import {
+  eventFrameAddedPayloadSchema,
+  eventFrameRemovedPayloadSchema,
   eventHeaderSchema,
-  eventPayloadSchema,
+  eventNotificationsEnabledPayloadSchema,
   eventSchema,
+  notificationsDisabledPayloadSchema,
 } from "@farcaster/frame-sdk";
 import { NextRequest } from "next/server";
+import { z } from "zod";
+
+// The legacy SDK still emits Zod 3 union types, which lose inference on
+// patched Zod 4. Recompose its own variants until the SDK supplies Zod 4 types.
+const eventPayloadSchema = z.discriminatedUnion("event", [
+  eventFrameAddedPayloadSchema,
+  eventFrameRemovedPayloadSchema,
+  eventNotificationsEnabledPayloadSchema,
+  notificationsDisabledPayloadSchema,
+]);
 
 export async function POST(request: NextRequest) {
   const requestJson = await request.json();
@@ -12,7 +25,7 @@ export async function POST(request: NextRequest) {
 
   if (requestBody.success === false) {
     return Response.json(
-      { success: false, errors: requestBody.error.errors },
+      { success: false, errors: requestBody.error.issues },
       { status: 400 }
     );
   }
@@ -25,7 +38,7 @@ export async function POST(request: NextRequest) {
   const header = eventHeaderSchema.safeParse(headerData);
   if (header.success === false) {
     return Response.json(
-      { success: false, errors: header.error.errors },
+      { success: false, errors: header.error.issues },
       { status: 400 }
     );
   }
@@ -38,7 +51,7 @@ export async function POST(request: NextRequest) {
 
   if (payload.success === false) {
     return Response.json(
-      { success: false, errors: payload.error.errors },
+      { success: false, errors: payload.error.issues },
       { status: 400 }
     );
   }
