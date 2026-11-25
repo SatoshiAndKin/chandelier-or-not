@@ -1,0 +1,73 @@
+name: Reviewed Linux CI
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Foundry project
+    if: github.repository == 'SatoshiAndKin/chandelier-or-not'
+    runs-on:
+      group: ski-ci-public-linux
+      labels: ski-kvm-public-pr
+    timeout-minutes: 30
+    env:
+      FOUNDRY_PROFILE: default
+      BASE_RPC_URL: https://mainnet.base.org
+      # https://docs.neynar.com/docs/verifications-contract
+      NN_VERIFICATIONS_ADDRESS: '0xdB1eCF22d195dF9e03688C33707b19C68BdEd142'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+      - name: Install official checksummed Foundry v1.10.0
+        shell: bash
+        run: |
+          umask 077
+          setup_dir=$(mktemp -d "$RUNNER_TEMP/chandelier-foundry.XXXXXX")
+          archive="$setup_dir/foundry.tar.gz"
+          curl --proto '=https' --proto-redir '=https' --max-redirs 3 --fail --location --silent --show-error \
+            --connect-timeout 10 --max-time 180 --max-filesize 160000000 --output "$archive" \
+            https://github.com/foundry-rs/foundry/releases/download/v1.10.0/foundry_v1.10.0_linux_amd64.tar.gz
+          printf '%s  %s\n' '90729233bd9a683b872783ae2e3217fb56876fa2a3c37185f13e39dca8525041' "$archive" |
+            sha256sum --check --status
+          test "$(tar -tzf "$archive" | LC_ALL=C sort)" = "$(printf '%s\n' anvil cast chisel forge solar)"
+          mkdir -m 700 -- "$setup_dir/bin"
+          tar --extract --gzip --file "$archive" --directory "$setup_dir/bin" \
+            --no-same-owner --no-same-permissions -- anvil cast chisel forge solar
+          rm -- "$archive"
+          "$setup_dir/bin/forge" --version
+          printf '%s\n' "$setup_dir/bin" >> "$GITHUB_PATH"
+      - run: forge fmt --check
+      - run: forge build --sizes --no-lint
+      - run: forge lint
+      - name: Run tests and check gas snapshots
+        run: forge snapshot --check -vvv
+
+  frontend:
+    name: Frontend lint, types and build
+    if: github.repository == 'SatoshiAndKin/chandelier-or-not'
+    runs-on:
+      group: ski-ci-public-linux
+      labels: ski-kvm-public-pr
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NODE_OPTIONS: --max-old-space-size=2048
+    defaults:
+      run:
+        working-directory: frames-v2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: frames-v2/.nvmrc
+          package-manager-cache: false
+      - run: corepack enable && corepack prepare yarn@1.22.22 --activate
+      - run: yarn install --frozen-lockfile --ignore-scripts
+      - run: yarn lint
+      - run: yarn tsc --noEmit
+      - run: yarn build
