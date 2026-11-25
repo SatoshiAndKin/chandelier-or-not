@@ -14,47 +14,5 @@ permissions:
   contents: read
 
 jobs:
-  check:
-    name: Foundry project
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      FOUNDRY_PROFILE: default
-      BASE_RPC_URL: https://mainnet.base.org
-      # https://docs.neynar.com/docs/verifications-contract
-      NN_VERIFICATIONS_ADDRESS: '0xdB1eCF22d195dF9e03688C33707b19C68BdEd142'
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          submodules: recursive
-      - uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1
-        with:
-          version: v1.10.0 # bundles Solar v0.3.0
-      - run: forge fmt --check
-      - run: forge build --sizes --no-lint
-      - run: forge lint
-      - name: Run tests and check gas snapshots
-        run: forge snapshot --check -vvv
-
-  frontend:
-    name: Frontend lint, types and build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      NEXT_TELEMETRY_DISABLED: '1'
-      NODE_OPTIONS: --max-old-space-size=2048
-    defaults:
-      run:
-        working-directory: frames-v2
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: frames-v2/.nvmrc
-          cache: yarn
-          cache-dependency-path: frames-v2/yarn.lock
-      - run: corepack enable && corepack prepare yarn@1.22.22 --activate
-      - run: yarn install --frozen-lockfile --ignore-scripts
-      - run: yarn lint
-      - run: yarn tsc --noEmit
-      - run: yarn build
+  linux:
+    uses: SatoshiAndKin/chandelier-or-not/.github/workflows/test-reviewed-linux.yml@9b2ce50dbd1badebd2dfc41609058dd6308ce8d4
