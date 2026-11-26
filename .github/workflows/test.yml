@@ -15,4 +15,4 @@ permissions:
 
 jobs:
   linux:
-    uses: SatoshiAndKin/chandelier-or-not/.github/workflows/test-reviewed-linux.yml@9b2ce50dbd1badebd2dfc41609058dd6308ce8d4
+    uses: SatoshiAndKin/chandelier-or-not/.github/workflows/test-reviewed-linux.yml@e2b3b25e048da752554c751d286f75785e56951e
