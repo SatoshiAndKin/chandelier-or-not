@@ -52,7 +52,7 @@ jobs:
     if: github.repository == 'SatoshiAndKin/chandelier-or-not'
     runs-on:
       group: ski-ci-public-linux
-      labels: ski-kvm-public-pr
+      labels: ski-kvm-public-build
     timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: '1'

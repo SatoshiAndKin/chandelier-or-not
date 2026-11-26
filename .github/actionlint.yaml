@@ -1,3 +1,4 @@
 self-hosted-runner:
   labels:
+    - ski-kvm-public-build
     - ski-kvm-public-pr
