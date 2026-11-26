@@ -1,0 +1,122 @@
+name: Chandelier reviewed public CI
+on:
+  workflow_call:
+    inputs:
+      suite:
+        type: string
+        required: true
+    outputs:
+      validated-sha:
+        value: ${{ jobs.validate.outputs.validated-sha }}
+      validated-on:
+        value: ${{ jobs.validate.outputs.validated-on }}
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Run original reviewed public suite on K3s
+    if: >-
+      ${{ (inputs.suite == 'foundry' || inputs.suite == 'frontend') &&
+          github.repository == 'SatoshiAndKin/chandelier-or-not' &&
+          github.repository_id == '886484136' &&
+          github.event.repository.private == false &&
+          github.event.repository.fork == false &&
+          github.actor == 'BlinkyStitt' &&
+          github.triggering_actor == 'BlinkyStitt' &&
+          github.workflow_ref == format('SatoshiAndKin/chandelier-or-not/.github/workflows/test.yml@{0}', github.ref) &&
+          ((github.event_name == 'pull_request' &&
+            github.event.pull_request.user.id == 624221 &&
+            github.event.pull_request.head.repo.id == 886484136 &&
+            github.event.pull_request.base.repo.id == 886484136 &&
+            github.event.pull_request.base.ref == 'main' &&
+            github.ref == format('refs/pull/{0}/merge', github.event.pull_request.number) &&
+            github.sha == vars.SKI_PUBLIC_K3S_APPROVED_PR_MERGE_SHA) ||
+           (github.event_name == 'push' &&
+            github.ref == 'refs/heads/main' &&
+            github.ref_protected &&
+            github.sha == vars.SKI_PUBLIC_K3S_APPROVED_MAIN_SHA)) }}
+    runs-on:
+      group: ski-ci-public-reviewed
+      labels: ski-gvisor-public-small
+    timeout-minutes: ${{ inputs.suite == 'foundry' && 30 || 15 }}
+    outputs:
+      validated-sha: ${{ steps.result.outputs.sha }}
+      validated-on: ${{ steps.result.outputs.environment }}
+    env:
+      FOUNDRY_PROFILE: default
+      BASE_RPC_URL: https://mainnet.base.org
+      # https://docs.neynar.com/docs/verifications-contract
+      NN_VERIFICATIONS_ADDRESS: '0xdB1eCF22d195dF9e03688C33707b19C68BdEd142'
+      NEXT_TELEMETRY_DISABLED: '1'
+      NODE_OPTIONS: --max-old-space-size=2048
+    steps:
+      - name: Require native Linux AMD64
+        shell: bash
+        run: |
+          test "$RUNNER_ENVIRONMENT" = self-hosted
+          test "$(uname -s)-$(uname -m)" = Linux-x86_64
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          submodules: ${{ inputs.suite == 'foundry' && 'recursive' || 'false' }}
+          persist-credentials: false
+      - name: Require exact source before setup
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Install official checksummed Foundry v1.10.0
+        if: inputs.suite == 'foundry'
+        shell: bash
+        run: |
+          umask 077
+          setup_dir=$(mktemp -d "$RUNNER_TEMP/chandelier-foundry.XXXXXX")
+          archive="$setup_dir/foundry.tar.gz"
+          curl --proto '=https' --proto-redir '=https' --max-redirs 3 --fail --location --silent --show-error \
+            --connect-timeout 10 --max-time 180 --max-filesize 160000000 --output "$archive" \
+            https://github.com/foundry-rs/foundry/releases/download/v1.10.0/foundry_v1.10.0_linux_amd64.tar.gz
+          printf '%s  %s\n' '90729233bd9a683b872783ae2e3217fb56876fa2a3c37185f13e39dca8525041' "$archive" |
+            sha256sum --check --status
+          test "$(tar -tzf "$archive" | LC_ALL=C sort)" = "$(printf '%s\n' anvil cast chisel forge solar)"
+          mkdir -m 700 -- "$setup_dir/bin"
+          tar --extract --gzip --file "$archive" --directory "$setup_dir/bin" \
+            --no-same-owner --no-same-permissions -- anvil cast chisel forge solar
+          rm -- "$archive"
+          "$setup_dir/bin/forge" --version
+          printf '%s\n' "$setup_dir/bin" >> "$GITHUB_PATH"
+      - if: inputs.suite == 'foundry'
+        run: forge fmt --check
+      - if: inputs.suite == 'foundry'
+        run: forge build --sizes --no-lint
+      - if: inputs.suite == 'foundry'
+        run: forge lint
+      - name: Run tests and check gas snapshots
+        if: inputs.suite == 'foundry'
+        run: forge snapshot --check -vvv
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        if: inputs.suite == 'frontend'
+        with:
+          node-version-file: frames-v2/.nvmrc
+          package-manager-cache: false
+      - if: inputs.suite == 'frontend'
+        working-directory: frames-v2
+        run: corepack enable && corepack prepare yarn@1.22.22 --activate
+      - if: inputs.suite == 'frontend'
+        working-directory: frames-v2
+        run: yarn install --frozen-lockfile --ignore-scripts
+      - if: inputs.suite == 'frontend'
+        working-directory: frames-v2
+        run: yarn lint
+      - if: inputs.suite == 'frontend'
+        working-directory: frames-v2
+        run: yarn tsc --noEmit
+      - if: inputs.suite == 'frontend'
+        working-directory: frames-v2
+        run: yarn build
+      - name: Record the required suite's exact source and environment
+        id: result
+        shell: bash
+        working-directory: .
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$RUNNER_ENVIRONMENT" = self-hosted
+          printf 'sha=%s\nenvironment=%s\n' "$GITHUB_SHA" "$RUNNER_ENVIRONMENT" >> "$GITHUB_OUTPUT"
