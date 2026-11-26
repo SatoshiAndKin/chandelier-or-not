@@ -20,7 +20,7 @@ jobs:
   scan:
     name: Scan dependencies, configuration, and secrets
     needs: linux
-    if: ${{ always() }}
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     permissions: {}
     timeout-minutes: 2
